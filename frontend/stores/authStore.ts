@@ -44,6 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async () => {
     try {
       // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+      // For Expo apps, use the BACKEND_URL which is dynamically set per environment
       const redirectUrl = `${BACKEND_URL}/(tabs)/search`;
       const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
       
