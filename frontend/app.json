@@ -1,21 +1,41 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Cheap Flight",
+    "slug": "cheap-flight",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "cheap-flight",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "Discover the cosmos of affordable travel. Search worldwide flights, save favorites, and set price alerts.",
+    "privacy": "public",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0118"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cheapflight.app",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Access your location to find nearby airports"
+      }
     },
     "android": {
+      "package": "com.cheapflight.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000"
+        "backgroundColor": "#0A0118"
       },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "edgeToEdgeEnabled": true
     },
     "web": {
@@ -31,12 +51,17 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000"
+          "backgroundColor": "#0A0118"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "cheap-flight-project"
+      }
     }
   }
 }
