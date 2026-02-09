@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHEAP FLIGHT - Feature Graphic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+        }
+
+        .banner {
+            width: 1024px;
+            height: 500px;
+            background: linear-gradient(135deg, #0A0118 0%, #1E0B3C 50%, #5A189A 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            padding: 0 60px;
+        }
+
+        /* Étoiles cosmiques */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .star:nth-child(1) { width: 3px; height: 3px; top: 50px; left: 150px; }
+        .star:nth-child(2) { width: 2px; height: 2px; top: 120px; left: 300px; animation-delay: 0.5s; }
+        .star:nth-child(3) { width: 4px; height: 4px; top: 80px; right: 200px; animation-delay: 1s; }
+        .star:nth-child(4) { width: 2px; height: 2px; top: 180px; right: 400px; animation-delay: 1.5s; }
+        .star:nth-child(5) { width: 3px; height: 3px; bottom: 100px; left: 250px; animation-delay: 2s; }
+        .star:nth-child(6) { width: 2px; height: 2px; bottom: 150px; right: 300px; }
+        .star:nth-child(7) { width: 3px; height: 3px; top: 200px; left: 500px; animation-delay: 2.5s; }
+        .star:nth-child(8) { width: 2px; height: 2px; bottom: 80px; right: 150px; animation-delay: 1.2s; }
+        .star:nth-child(9) { width: 4px; height: 4px; top: 280px; right: 500px; animation-delay: 0.8s; }
+        .star:nth-child(10) { width: 2px; height: 2px; bottom: 200px; left: 700px; }
+
+        /* Logo Section */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            z-index: 10;
+        }
+
+        .logo {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #7B2CBF, #C77DFF);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 40px rgba(199, 125, 255, 0.6);
+            flex-shrink: 0;
+        }
+
+        .logo svg {
+            width: 60px;
+            height: 60px;
+            fill: white;
+        }
+
+        /* Text Content */
+        .content {
+            flex: 1;
+        }
+
+        .title {
+            font-size: 68px;
+            font-weight: 900;
+            color: #FFFFFF;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            line-height: 1;
+        }
+
+        .subtitle {
+            font-size: 22px;
+            color: #E0AAFF;
+            font-weight: 400;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Features */
+        .features {
+            display: flex;
+            gap: 50px;
+            margin-top: 30px;
+        }
+
+        .feature {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(199, 125, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            border: 2px solid #C77DFF;
+        }
+
+        .feature-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #C77DFF;
+        }
+
+        .feature-text {
+            font-size: 15px;
+            color: #FFFFFF;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <!-- Étoiles -->
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+
+        <!-- Logo -->
+        <div class="logo-section">
+            <div class="logo">
+                <!-- Icône d'avion SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Contenu -->
+        <div class="content">
+            <div class="title">CHEAP FLIGHT</div>
+            <div class="subtitle">Discover the Cosmos of Affordable Travel</div>
+            
+            <!-- Features -->
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </div>
+                    <div class="feature-text">Search Flights</div>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
+                        </svg>
+                    </div>
+                    <div class="feature-text">Best Prices</div>
+                </div>
+                
+                <div class="feature">
+                    <div class="feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="feature-text">Price Alerts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ajouter d'autres étoiles aléatoires
+        const banner = document.querySelector('.banner');
+        for (let i = 0; i < 15; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = Math.random() * 3 + 1 + 'px';
+            star.style.height = star.style.width;
+            star.style.top = Math.random() * 500 + 'px';
+            star.style.left = Math.random() * 1024 + 'px';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            banner.appendChild(star);
+        }
+    </script>
+</body>
+</html>
