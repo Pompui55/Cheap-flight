@@ -1,33 +1,26 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useRootNavigationState } from 'expo-router';
-import { useAuthStore } from '../stores/authStore';
 
 export default function Index() {
   const router = useRouter();
   const navigationState = useRootNavigationState();
-  const { user, isLoading } = useAuthStore();
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
 
   useEffect(() => {
-    // Wait for navigation state to be ready before navigating
+    // Wait for navigation state to be ready
     if (!navigationState?.key) return;
-    if (isLoading) return;
-    if (isNavigating) return;
+    if (hasNavigated) return;
 
-    setIsNavigating(true);
+    setHasNavigated(true);
     
-    // Use setTimeout to ensure layout is mounted
+    // Skip auth and go directly to search
     const timer = setTimeout(() => {
-      if (user) {
-        router.replace('/(tabs)/search');
-      } else {
-        router.replace('/auth');
-      }
-    }, 100);
+      router.replace('/(tabs)/search');
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [user, isLoading, navigationState?.key, isNavigating]);
+  }, [navigationState?.key, hasNavigated]);
 
   return (
     <View style={styles.container}>
