@@ -11,35 +11,30 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
+import random
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'cheap_flight')]
 
-# Create the main app without a prefix
-app = FastAPI()
+# Aviationstack API
+AVIATIONSTACK_API_KEY = os.environ.get('AVIATIONSTACK_API_KEY', '')
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create the main app
+app = FastAPI(title="CHEAP FLIGHT API")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
 # ============= MODELS =============
-class User(BaseModel):
-    user_id: str
-    email: str
-    name: str
-    picture: Optional[str] = None
-    created_at: datetime
-
-class UserSession(BaseModel):
-    user_id: str
-    session_token: str
-    expires_at: datetime
-    created_at: datetime
-
 class Flight(BaseModel):
     flight_id: str
     airline: str
@@ -50,7 +45,7 @@ class Flight(BaseModel):
     arrival_time: str
     duration: str
     price: float
-    currency: str = "USD"
+    currency: str = "EUR"
     stops: int = 0
     flight_number: str = ""
     available_seats: int = 0
@@ -62,178 +57,63 @@ class SearchRequest(BaseModel):
     return_date: Optional[str] = None
     adults: int = 1
 
-class Favorite(BaseModel):
-    favorite_id: str
-    user_id: str
-    flight: Flight
-    created_at: datetime
+# ============= AIRPORTS DATA =============
+AIRPORTS = {
+    "CDG": {"city": "Paris", "country": "France", "name": "Charles de Gaulle"},
+    "ORY": {"city": "Paris", "country": "France", "name": "Orly"},
+    "LHR": {"city": "London", "country": "UK", "name": "Heathrow"},
+    "JFK": {"city": "New York", "country": "USA", "name": "John F. Kennedy"},
+    "LAX": {"city": "Los Angeles", "country": "USA", "name": "Los Angeles Intl"},
+    "DXB": {"city": "Dubai", "country": "UAE", "name": "Dubai Intl"},
+    "SIN": {"city": "Singapore", "country": "Singapore", "name": "Changi"},
+    "HND": {"city": "Tokyo", "country": "Japan", "name": "Haneda"},
+    "FCO": {"city": "Rome", "country": "Italy", "name": "Fiumicino"},
+    "BCN": {"city": "Barcelona", "country": "Spain", "name": "El Prat"},
+    "MAD": {"city": "Madrid", "country": "Spain", "name": "Barajas"},
+    "AMS": {"city": "Amsterdam", "country": "Netherlands", "name": "Schiphol"},
+    "FRA": {"city": "Frankfurt", "country": "Germany", "name": "Frankfurt"},
+    "IST": {"city": "Istanbul", "country": "Turkey", "name": "Istanbul"},
+    "BKK": {"city": "Bangkok", "country": "Thailand", "name": "Suvarnabhumi"},
+    "CMN": {"city": "Casablanca", "country": "Morocco", "name": "Mohammed V"},
+    "ALG": {"city": "Algiers", "country": "Algeria", "name": "Houari Boumediene"},
+    "TUN": {"city": "Tunis", "country": "Tunisia", "name": "Carthage"},
+    "ABJ": {"city": "Abidjan", "country": "Ivory Coast", "name": "Félix-Houphouët-Boigny"},
+    "DKR": {"city": "Dakar", "country": "Senegal", "name": "Blaise Diagne"},
+    "NYC": {"city": "New York", "country": "USA", "name": "All Airports"},
+    "PAR": {"city": "Paris", "country": "France", "name": "All Airports"},
+    "LON": {"city": "London", "country": "UK", "name": "All Airports"},
+}
 
-class PriceAlert(BaseModel):
-    alert_id: str
-    user_id: str
-    origin: str
-    destination: str
-    max_price: float
-    active: bool = True
-    created_at: datetime
-
-class SearchHistory(BaseModel):
-    history_id: str
-    user_id: str
-    search_params: dict
-    timestamp: datetime
-
-# ============= AUTH HELPER =============
-async def get_current_user(request: Request, authorization: Optional[str] = Header(None)) -> User:
-    """Get current user from session_token (cookie or header)"""
-    session_token = None
-    
-    # Try cookie first
-    session_token = request.cookies.get("session_token")
-    
-    # Fallback to Authorization header
-    if not session_token and authorization:
-        if authorization.startswith("Bearer "):
-            session_token = authorization.replace("Bearer ", "")
-    
-    if not session_token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    # Find session in database
-    session_doc = await db.user_sessions.find_one(
-        {"session_token": session_token},
-        {"_id": 0}
-    )
-    
-    if not session_doc:
-        raise HTTPException(status_code=401, detail="Invalid session")
-    
-    # Check expiry
-    expires_at = session_doc["expires_at"]
-    if isinstance(expires_at, str):
-        expires_at = datetime.fromisoformat(expires_at)
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=401, detail="Session expired")
-    
-    # Get user
-    user_doc = await db.users.find_one(
-        {"user_id": session_doc["user_id"]},
-        {"_id": 0}
-    )
-    
-    if not user_doc:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return User(**user_doc)
-
-# ============= AUTH ENDPOINTS =============
-@api_router.post("/auth/session")
-async def create_session(request: Request, response: Response):
-    """Exchange session_id for user data and create session"""
-    body = await request.json()
-    session_id = body.get("session_id")
-    
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id required")
-    
-    # Call Emergent Auth API
-    async with httpx.AsyncClient() as client:
-        try:
-            auth_response = await client.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": session_id}
-            )
-            auth_response.raise_for_status()
-            user_data = auth_response.json()
-        except Exception as e:
-            raise HTTPException(status_code=401, detail=f"Auth failed: {str(e)}")
-    
-    # Create or update user
-    user_id = f"user_{uuid.uuid4().hex[:12]}"
-    existing_user = await db.users.find_one({"email": user_data["email"]}, {"_id": 0})
-    
-    if existing_user:
-        user_id = existing_user["user_id"]
-        await db.users.update_one(
-            {"user_id": user_id},
-            {"$set": {
-                "name": user_data["name"],
-                "picture": user_data.get("picture")
-            }}
-        )
-    else:
-        await db.users.insert_one({
-            "user_id": user_id,
-            "email": user_data["email"],
-            "name": user_data["name"],
-            "picture": user_data.get("picture"),
-            "created_at": datetime.now(timezone.utc)
-        })
-    
-    # Create session
-    session_token = f"session_{uuid.uuid4().hex}"
-    await db.user_sessions.insert_one({
-        "user_id": user_id,
-        "session_token": session_token,
-        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
-        "created_at": datetime.now(timezone.utc)
-    })
-    
-    # Set cookie
-    response.set_cookie(
-        key="session_token",
-        value=session_token,
-        httponly=True,
-        secure=True,
-        samesite="none",
-        path="/",
-        max_age=7*24*60*60
-    )
-    
-    user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0})
-    return User(**user_doc)
-
-@api_router.get("/auth/me")
-async def get_me(request: Request, authorization: Optional[str] = Header(None)):
-    """Get current user info"""
-    user = await get_current_user(request, authorization)
-    return user
-
-@api_router.post("/auth/logout")
-async def logout(request: Request, response: Response, authorization: Optional[str] = Header(None)):
-    """Logout user"""
-    try:
-        user = await get_current_user(request, authorization)
-        session_token = request.cookies.get("session_token")
-        if session_token:
-            await db.user_sessions.delete_one({"session_token": session_token})
-        response.delete_cookie("session_token", path="/")
-        return {"message": "Logged out"}
-    except:
-        return {"message": "Logged out"}
+AIRLINES = [
+    {"code": "AF", "name": "Air France"},
+    {"code": "LH", "name": "Lufthansa"},
+    {"code": "BA", "name": "British Airways"},
+    {"code": "EK", "name": "Emirates"},
+    {"code": "QR", "name": "Qatar Airways"},
+    {"code": "TK", "name": "Turkish Airlines"},
+    {"code": "KL", "name": "KLM"},
+    {"code": "IB", "name": "Iberia"},
+    {"code": "AT", "name": "Royal Air Maroc"},
+    {"code": "AH", "name": "Air Algérie"},
+]
 
 # ============= FLIGHT SEARCH =============
 async def get_aviationstack_flights(origin: str, destination: str, flight_date: str):
     """Get real flight data from Aviationstack API"""
-    api_key = os.environ.get('AVIATIONSTACK_API_KEY')
-    
-    if not api_key:
-        logger.warning("Aviationstack API key not found, using mock data")
+    if not AVIATIONSTACK_API_KEY:
+        logger.warning("Aviationstack API key not found")
         return []
     
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # Call Aviationstack API
+        async with httpx.AsyncClient(timeout=30.0) as http_client:
             params = {
-                'access_key': api_key,
+                'access_key': AVIATIONSTACK_API_KEY,
                 'dep_iata': origin.upper(),
                 'arr_iata': destination.upper(),
-                'limit': 10
+                'limit': 20
             }
             
-            response = await client.get(
+            response = await http_client.get(
                 'http://api.aviationstack.com/v1/flights',
                 params=params
             )
@@ -245,11 +125,9 @@ async def get_aviationstack_flights(origin: str, destination: str, flight_date: 
             data = response.json()
             flights = data.get('data', [])
             
-            # Transform Aviationstack data to our format
             transformed_flights = []
             for flight in flights:
                 try:
-                    # Calculate duration
                     dep_time = flight.get('departure', {}).get('scheduled')
                     arr_time = flight.get('arrival', {}).get('scheduled')
                     
@@ -261,9 +139,8 @@ async def get_aviationstack_flights(origin: str, destination: str, flight_date: 
                     else:
                         duration = "N/A"
                     
-                    # Generate a realistic price (between $200-$800)
-                    import random
-                    base_price = random.randint(200, 800)
+                    # Generate price based on duration
+                    base_price = 50 + (duration_mins // 60 * 30) + random.randint(-20, 50)
                     
                     transformed_flight = {
                         "flight_id": flight.get('flight', {}).get('iata', f"FL{uuid.uuid4().hex[:8].upper()}"),
@@ -275,184 +152,144 @@ async def get_aviationstack_flights(origin: str, destination: str, flight_date: 
                         "arrival_time": arr_time or f"{flight_date}T00:00:00",
                         "duration": duration,
                         "price": float(base_price),
-                        "currency": "USD",
-                        "stops": 0 if flight.get('flight_status') == 'scheduled' else 1,
+                        "currency": "EUR",
+                        "stops": 0,
                         "flight_number": flight.get('flight', {}).get('iata', 'N/A'),
                         "available_seats": random.randint(5, 50)
                     }
                     transformed_flights.append(transformed_flight)
                 except Exception as e:
-                    logger.error(f"Error transforming flight data: {e}")
+                    logger.error(f"Error transforming flight: {e}")
                     continue
             
             return transformed_flights
             
     except Exception as e:
-        logger.error(f"Error calling Aviationstack API: {e}")
+        logger.error(f"Aviationstack API error: {e}")
         return []
 
+def generate_mock_flights(origin: str, destination: str, flight_date: str, count: int = 8):
+    """Generate mock flight data"""
+    flights = []
+    
+    base_prices = {
+        ("CDG", "JFK"): 450, ("PAR", "NYC"): 450, ("CDG", "DXB"): 380,
+        ("CDG", "BCN"): 85, ("CDG", "LHR"): 95, ("PAR", "LON"): 95,
+        ("CDG", "FCO"): 110, ("CDG", "CMN"): 120,
+    }
+    base_price = base_prices.get((origin.upper(), destination.upper()), random.randint(150, 600))
+    
+    for i in range(count):
+        airline = random.choice(AIRLINES)
+        hour = random.randint(6, 22)
+        minute = random.choice([0, 15, 30, 45])
+        
+        # Duration based on destination
+        if origin.upper()[:1] == destination.upper()[:1]:
+            duration_hours = random.randint(1, 3)
+        else:
+            duration_hours = random.randint(4, 12)
+        duration_mins = random.choice([0, 15, 30, 45])
+        
+        arr_hour = (hour + duration_hours) % 24
+        arr_minute = (minute + duration_mins) % 60
+        
+        price_var = random.uniform(0.8, 1.3)
+        stops = random.choices([0, 1], weights=[70, 30])[0]
+        if stops > 0:
+            price_var *= 0.85
+        
+        flight = {
+            "flight_id": f"FL{uuid.uuid4().hex[:8].upper()}",
+            "airline": airline["name"],
+            "airline_logo": f"https://images.kiwi.com/airlines/64/{airline['code']}.png",
+            "origin": origin.upper(),
+            "destination": destination.upper(),
+            "departure_time": f"{flight_date}T{hour:02d}:{minute:02d}:00",
+            "arrival_time": f"{flight_date}T{arr_hour:02d}:{arr_minute:02d}:00",
+            "duration": f"{duration_hours}h {duration_mins}m",
+            "price": round(base_price * price_var, 2),
+            "currency": "EUR",
+            "stops": stops,
+            "flight_number": f"{airline['code']}{random.randint(100, 9999)}",
+            "available_seats": random.randint(3, 45)
+        }
+        flights.append(flight)
+    
+    flights.sort(key=lambda x: x["price"])
+    return flights
+
+# ============= API ROUTES (PUBLIC - NO AUTH REQUIRED) =============
+
+@api_router.get("/")
+async def root():
+    return {
+        "message": "CHEAP FLIGHT API",
+        "status": "online",
+        "version": "2.0",
+        "aviationstack": "enabled" if AVIATIONSTACK_API_KEY else "disabled"
+    }
+
+@api_router.get("/airports")
+async def get_airports(query: str = None):
+    """Search airports"""
+    if not query or len(query) < 2:
+        return [{"code": k, **v} for k, v in list(AIRPORTS.items())[:10]]
+    
+    query_lower = query.lower()
+    results = []
+    for code, info in AIRPORTS.items():
+        if (query_lower in code.lower() or 
+            query_lower in info["city"].lower() or 
+            query_lower in info["country"].lower()):
+            results.append({"code": code, **info})
+    return results[:10]
+
 @api_router.post("/flights/search")
-async def search_flights(search: SearchRequest, request: Request, authorization: Optional[str] = Header(None)):
-    """Search flights using Aviationstack API"""
-    user = await get_current_user(request, authorization)
+async def search_flights(search: SearchRequest):
+    """Search flights - NO AUTH REQUIRED"""
+    origin = search.origin.upper()
+    destination = search.destination.upper()
     
-    # Save to search history
-    history_id = f"history_{uuid.uuid4().hex[:12]}"
-    await db.search_history.insert_one({
-        "history_id": history_id,
-        "user_id": user.user_id,
-        "search_params": search.dict(),
-        "timestamp": datetime.now(timezone.utc)
-    })
+    # Map city codes to airport codes
+    city_to_airport = {"PAR": "CDG", "NYC": "JFK", "LON": "LHR"}
+    origin = city_to_airport.get(origin, origin)
+    destination = city_to_airport.get(destination, destination)
     
-    # Get real flight data from Aviationstack
-    flights = await get_aviationstack_flights(
-        search.origin,
-        search.destination,
-        search.departure_date
-    )
+    # Try real API first
+    flights = await get_aviationstack_flights(origin, destination, search.departure_date)
     
-    # If no real data, return mock data as fallback
+    # Fallback to mock data
     if not flights:
-        logger.info("Using mock data as fallback")
-        flights = [
-            {
-                "flight_id": f"FL{uuid.uuid4().hex[:8].upper()}",
-                "airline": "Air France",
-                "airline_logo": "https://images.kiwi.com/airlines/64/AF.png",
-                "origin": search.origin,
-                "destination": search.destination,
-                "departure_time": f"{search.departure_date}T08:00:00",
-                "arrival_time": f"{search.departure_date}T14:30:00",
-                "duration": "6h 30m",
-                "price": 450.00,
-                "currency": "USD",
-                "stops": 0,
-                "flight_number": "AF1234",
-                "available_seats": 12
-            },
-            {
-                "flight_id": f"FL{uuid.uuid4().hex[:8].upper()}",
-                "airline": "Lufthansa",
-                "airline_logo": "https://images.kiwi.com/airlines/64/LH.png",
-                "origin": search.origin,
-                "destination": search.destination,
-                "departure_time": f"{search.departure_date}T10:15:00",
-                "arrival_time": f"{search.departure_date}T17:00:00",
-                "duration": "6h 45m",
-                "price": 520.00,
-                "currency": "USD",
-                "stops": 1,
-                "flight_number": "LH5678",
-                "available_seats": 8
-            }
-        ]
+        logger.info("Using mock data")
+        flights = generate_mock_flights(origin, destination, search.departure_date)
+    
+    # Save to search history (anonymous)
+    await db.search_history.insert_one({
+        "id": str(uuid.uuid4()),
+        "origin": origin,
+        "destination": destination,
+        "departure_date": search.departure_date,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
     
     return {"flights": flights, "count": len(flights)}
 
-# ============= FAVORITES =============
-@api_router.post("/flights/favorites")
-async def add_favorite(flight: Flight, request: Request, authorization: Optional[str] = Header(None)):
-    """Add flight to favorites"""
-    user = await get_current_user(request, authorization)
-    
-    favorite_id = f"fav_{uuid.uuid4().hex[:12]}"
-    await db.favorites.insert_one({
-        "favorite_id": favorite_id,
-        "user_id": user.user_id,
-        "flight": flight.dict(),
-        "created_at": datetime.now(timezone.utc)
-    })
-    
-    return {"message": "Added to favorites", "favorite_id": favorite_id}
+@api_router.get("/flights/popular")
+async def get_popular():
+    """Get popular destinations"""
+    return [
+        {"origin": "CDG", "destination": "BCN", "city": "Barcelona", "country": "Spain", "price_from": 85},
+        {"origin": "CDG", "destination": "LHR", "city": "London", "country": "UK", "price_from": 95},
+        {"origin": "CDG", "destination": "FCO", "city": "Rome", "country": "Italy", "price_from": 99},
+        {"origin": "CDG", "destination": "MAD", "city": "Madrid", "country": "Spain", "price_from": 89},
+        {"origin": "CDG", "destination": "AMS", "city": "Amsterdam", "country": "Netherlands", "price_from": 79},
+        {"origin": "CDG", "destination": "CMN", "city": "Casablanca", "country": "Morocco", "price_from": 120},
+        {"origin": "CDG", "destination": "JFK", "city": "New York", "country": "USA", "price_from": 380},
+        {"origin": "CDG", "destination": "DXB", "city": "Dubai", "country": "UAE", "price_from": 350},
+    ]
 
-@api_router.get("/flights/favorites")
-async def get_favorites(request: Request, authorization: Optional[str] = Header(None)):
-    """Get user's favorite flights"""
-    user = await get_current_user(request, authorization)
-    
-    favorites = await db.favorites.find(
-        {"user_id": user.user_id},
-        {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
-    
-    return {"favorites": favorites}
-
-@api_router.delete("/flights/favorites/{favorite_id}")
-async def remove_favorite(favorite_id: str, request: Request, authorization: Optional[str] = Header(None)):
-    """Remove flight from favorites"""
-    user = await get_current_user(request, authorization)
-    
-    result = await db.favorites.delete_one({
-        "favorite_id": favorite_id,
-        "user_id": user.user_id
-    })
-    
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Favorite not found")
-    
-    return {"message": "Removed from favorites"}
-
-# ============= PRICE ALERTS =============
-@api_router.post("/alerts")
-async def create_alert(alert_data: dict, request: Request, authorization: Optional[str] = Header(None)):
-    """Create price alert"""
-    user = await get_current_user(request, authorization)
-    
-    alert_id = f"alert_{uuid.uuid4().hex[:12]}"
-    await db.price_alerts.insert_one({
-        "alert_id": alert_id,
-        "user_id": user.user_id,
-        "origin": alert_data["origin"],
-        "destination": alert_data["destination"],
-        "max_price": alert_data["max_price"],
-        "active": True,
-        "created_at": datetime.now(timezone.utc)
-    })
-    
-    return {"message": "Alert created", "alert_id": alert_id}
-
-@api_router.get("/alerts")
-async def get_alerts(request: Request, authorization: Optional[str] = Header(None)):
-    """Get user's price alerts"""
-    user = await get_current_user(request, authorization)
-    
-    alerts = await db.price_alerts.find(
-        {"user_id": user.user_id},
-        {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
-    
-    return {"alerts": alerts}
-
-@api_router.delete("/alerts/{alert_id}")
-async def delete_alert(alert_id: str, request: Request, authorization: Optional[str] = Header(None)):
-    """Delete price alert"""
-    user = await get_current_user(request, authorization)
-    
-    result = await db.price_alerts.delete_one({
-        "alert_id": alert_id,
-        "user_id": user.user_id
-    })
-    
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Alert not found")
-    
-    return {"message": "Alert deleted"}
-
-# ============= SEARCH HISTORY =============
-@api_router.get("/history")
-async def get_history(request: Request, authorization: Optional[str] = Header(None)):
-    """Get user's search history"""
-    user = await get_current_user(request, authorization)
-    
-    history = await db.search_history.find(
-        {"user_id": user.user_id},
-        {"_id": 0}
-    ).sort("timestamp", -1).limit(20).to_list(20)
-    
-    return {"history": history}
-
-# Include the router in the main app
+# Include router
 app.include_router(api_router)
 
 app.add_middleware(
@@ -462,13 +299,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
