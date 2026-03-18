@@ -454,13 +454,35 @@ export default function SearchScreen() {
               <Ionicons name="search" size={20} color="#9D4EDD" />
               <TextInput
                 style={styles.modalSearchInput}
-                placeholder="Rechercher une ville..."
+                placeholder="Rechercher ou taper code (ex: BKK)"
                 placeholderTextColor="#9D4EDD"
                 value={airportSearch}
                 onChangeText={setAirportSearch}
                 autoFocus
+                autoCapitalize="characters"
               />
             </View>
+
+            {/* Option code personnalisé */}
+            {airportSearch.length >= 3 && !filteredAirports.find(a => a.code.toLowerCase() === airportSearch.toLowerCase().substring(0,3)) && (
+              <Pressable
+                style={({ pressed }) => [styles.customAirportItem, pressed && styles.itemPressed]}
+                onPress={() => {
+                  setOrigin(airportSearch.toUpperCase().substring(0,3));
+                  setShowOriginModal(false);
+                  setAirportSearch('');
+                }}
+              >
+                <View style={[styles.airportCodeBox, {backgroundColor: 'rgba(16,185,129,0.2)'}]}>
+                  <Text style={[styles.airportCodeText, {color: '#10B981'}]}>{airportSearch.toUpperCase().substring(0,3)}</Text>
+                </View>
+                <View style={styles.airportDetails}>
+                  <Text style={styles.airportCity}>Utiliser "{airportSearch.toUpperCase().substring(0,3)}"</Text>
+                  <Text style={styles.airportCountry}>Code IATA personnalisé</Text>
+                </View>
+                <Ionicons name="add-circle" size={24} color="#10B981" />
+              </Pressable>
+            )}
 
             <FlatList
               data={filteredAirports}
@@ -505,13 +527,35 @@ export default function SearchScreen() {
               <Ionicons name="search" size={20} color="#9D4EDD" />
               <TextInput
                 style={styles.modalSearchInput}
-                placeholder="Rechercher une ville..."
+                placeholder="Rechercher ou taper code (ex: BKK)"
                 placeholderTextColor="#9D4EDD"
                 value={airportSearch}
                 onChangeText={setAirportSearch}
                 autoFocus
+                autoCapitalize="characters"
               />
             </View>
+
+            {/* Option code personnalisé */}
+            {airportSearch.length >= 3 && !filteredAirports.find(a => a.code.toLowerCase() === airportSearch.toLowerCase().substring(0,3)) && (
+              <Pressable
+                style={({ pressed }) => [styles.customAirportItem, pressed && styles.itemPressed]}
+                onPress={() => {
+                  setDestination(airportSearch.toUpperCase().substring(0,3));
+                  setShowDestModal(false);
+                  setAirportSearch('');
+                }}
+              >
+                <View style={[styles.airportCodeBox, {backgroundColor: 'rgba(16,185,129,0.2)'}]}>
+                  <Text style={[styles.airportCodeText, {color: '#10B981'}]}>{airportSearch.toUpperCase().substring(0,3)}</Text>
+                </View>
+                <View style={styles.airportDetails}>
+                  <Text style={styles.airportCity}>Utiliser "{airportSearch.toUpperCase().substring(0,3)}"</Text>
+                  <Text style={styles.airportCountry}>Code IATA personnalisé</Text>
+                </View>
+                <Ionicons name="add-circle" size={24} color="#10B981" />
+              </Pressable>
+            )}
 
             <FlatList
               data={filteredAirports}
@@ -709,6 +753,7 @@ const styles = StyleSheet.create({
   airportDetails: { flex: 1, marginLeft: 14 },
   airportCity: { fontSize: 16, fontWeight: '600', color: '#FFF' },
   airportCountry: { fontSize: 13, color: '#9D4EDD' },
+  customAirportItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 2, borderBottomColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.05)' },
   
   flightDetails: { padding: 20 },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#3C096C' },
