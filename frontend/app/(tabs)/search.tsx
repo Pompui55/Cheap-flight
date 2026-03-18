@@ -11,12 +11,16 @@ import {
   Platform,
   Modal,
   FlatList,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 
-// Interfaces définies en premier
+// Backend URL - API avec Aviationstack
+const BACKEND_URL = 'https://cheap-flights-144.preview.emergentagent.com';
+
+// Interfaces
 interface Airport {
   code: string;
   city: string;
@@ -37,6 +41,7 @@ interface Flight {
   stops: number;
   flight_number: string;
   available_seats: number;
+  is_real_data?: boolean;
 }
 
 interface PopularDestination {
@@ -47,7 +52,7 @@ interface PopularDestination {
   price_from: number;
 }
 
-// Données locales
+// Données locales (fallback)
 const LOCAL_AIRPORTS: Airport[] = [
   { code: "CDG", city: "Paris", country: "France", name: "Charles de Gaulle" },
   { code: "ORY", city: "Paris", country: "France", name: "Orly" },
@@ -61,6 +66,9 @@ const LOCAL_AIRPORTS: Airport[] = [
   { code: "MAD", city: "Madrid", country: "Espagne", name: "Barajas" },
   { code: "CMN", city: "Casablanca", country: "Maroc", name: "Mohammed V" },
   { code: "IST", city: "Istanbul", country: "Turquie", name: "Istanbul" },
+  { code: "ALG", city: "Alger", country: "Algérie", name: "Houari Boumediene" },
+  { code: "TUN", city: "Tunis", country: "Tunisie", name: "Carthage" },
+  { code: "DKR", city: "Dakar", country: "Sénégal", name: "Blaise Diagne" },
 ];
 
 const LOCAL_POPULAR: PopularDestination[] = [
@@ -72,8 +80,8 @@ const LOCAL_POPULAR: PopularDestination[] = [
   { origin: "CDG", destination: "JFK", city: "New York", country: "USA", price_from: 380 },
 ];
 
-// Générer des vols
-const generateFlights = (from: string, to: string, date: string): Flight[] => {
+// Générer des vols (fallback si pas de connexion)
+const generateLocalFlights = (from: string, to: string): Flight[] => {
   const airlines = ['Air France', 'Lufthansa', 'British Airways', 'Emirates', 'KLM', 'Turkish Airlines'];
   const flights: Flight[] = [];
   
@@ -97,6 +105,7 @@ const generateFlights = (from: string, to: string, date: string): Flight[] => {
       stops: Math.random() > 0.7 ? 1 : 0,
       flight_number: `${airline.substring(0, 2).toUpperCase()}${1000 + i * 111}`,
       available_seats: 5 + Math.floor(Math.random() * 40),
+      is_real_data: false,
     });
   }
   
@@ -110,36 +119,134 @@ export default function SearchScreen() {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [airports] = useState<Airport[]>(LOCAL_AIRPORTS);
-  const [popularDestinations] = useState<PopularDestination[]>(LOCAL_POPULAR);
+  const [airports, setAirports] = useState<Airport[]>(LOCAL_AIRPORTS);
+  const [popularDestinations, setPopularDestinations] = useState<PopularDestination[]>(LOCAL_POPULAR);
   const [showOriginModal, setShowOriginModal] = useState(false);
   const [showDestModal, setShowDestModal] = useState(false);
   const [airportSearch, setAirportSearch] = useState('');
+  const [isRealData, setIsRealData] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
-  // Set default date
+  // Set default date + check backend
   useEffect(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateStr = tomorrow.toISOString().split('T')[0];
-    setDepartureDate(dateStr);
+    setDepartureDate(tomorrow.toISOString().split('T')[0]);
+    
+    // Check backend status
+    checkBackend();
+    loadAirports();
+    loadPopularDestinations();
   }, []);
 
-  const handleSearch = () => {
+  const checkBackend = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/`, { 
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (response.ok) {
+        setBackendStatus('online');
+      } else {
+        setBackendStatus('offline');
+      }
+    } catch (error) {
+      setBackendStatus('offline');
+    }
+  };
+
+  const loadAirports = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/airports`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setAirports(data);
+        }
+      }
+    } catch (error) {
+      console.log('Using local airports');
+    }
+  };
+
+  const loadPopularDestinations = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/flights/popular`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setPopularDestinations(data);
+        }
+      }
+    } catch (error) {
+      console.log('Using local popular destinations');
+    }
+  };
+
+  const handleSearch = async () => {
     if (!origin || !destination) {
-      alert('Veuillez sélectionner le départ et la destination');
+      Alert.alert('Erreur', 'Veuillez sélectionner le départ et la destination');
       return;
     }
 
     setLoading(true);
     setSearched(false);
+    setIsRealData(false);
     
-    // Simuler un délai de recherche
+    try {
+      // Essayer le backend réel
+      const response = await fetch(`${BACKEND_URL}/api/flights/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin,
+          destination,
+          departure_date: departureDate,
+          adults: 1,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.flights && data.flights.length > 0) {
+          // Formater les heures si nécessaire
+          const formattedFlights = data.flights.map((f: any) => ({
+            ...f,
+            departure_time: formatTime(f.departure_time),
+            arrival_time: formatTime(f.arrival_time),
+            is_real_data: true,
+          }));
+          setFlights(formattedFlights);
+          setIsRealData(true);
+          setSearched(true);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (error) {
+      console.log('Backend error, using local data');
+    }
+
+    // Fallback: données locales
     setTimeout(() => {
-      const mockFlights = generateFlights(origin, destination, departureDate);
-      setFlights(mockFlights);
+      const localFlights = generateLocalFlights(origin, destination);
+      setFlights(localFlights);
       setSearched(true);
       setLoading(false);
-    }, 1500);
+    }, 1000);
+  };
+
+  const formatTime = (timeStr: string): string => {
+    if (!timeStr) return '--:--';
+    // Si c'est déjà au format HH:MM
+    if (timeStr.length === 5 && timeStr.includes(':')) return timeStr;
+    // Si c'est une date ISO
+    try {
+      const date = new Date(timeStr);
+      return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    } catch {
+      return timeStr.substring(0, 5);
+    }
   };
 
   const handlePopularClick = (dest: PopularDestination) => {
@@ -155,7 +262,8 @@ export default function SearchScreen() {
   const filteredAirports = airportSearch.length > 0 
     ? airports.filter(a => 
         a.city.toLowerCase().includes(airportSearch.toLowerCase()) ||
-        a.code.toLowerCase().includes(airportSearch.toLowerCase())
+        a.code.toLowerCase().includes(airportSearch.toLowerCase()) ||
+        a.country.toLowerCase().includes(airportSearch.toLowerCase())
       )
     : airports;
 
@@ -231,8 +339,12 @@ export default function SearchScreen() {
             <View style={styles.header}>
               <Ionicons name="airplane" size={32} color="#C77DFF" />
               <Text style={styles.headerTitle}>CHEAP FLIGHT</Text>
+              {/* Status indicator */}
+              <View style={[styles.statusDot, { backgroundColor: backendStatus === 'online' ? '#10B981' : backendStatus === 'offline' ? '#EF4444' : '#F59E0B' }]} />
             </View>
-            <Text style={styles.subtitle}>Trouvez les vols les moins chers</Text>
+            <Text style={styles.subtitle}>
+              {backendStatus === 'online' ? '🟢 Vols en temps réel' : '🔴 Mode hors ligne'}
+            </Text>
 
             {/* Search Form */}
             <View style={styles.searchCard}>
@@ -323,7 +435,7 @@ export default function SearchScreen() {
             {/* Popular Destinations */}
             {!searched && (
               <View style={styles.popularSection}>
-                <Text style={styles.sectionTitle}>Destinations populaires</Text>
+                <Text style={styles.sectionTitle}>✈️ Destinations populaires</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   {popularDestinations.map((dest) => (
                     <TouchableOpacity
@@ -345,9 +457,16 @@ export default function SearchScreen() {
             {/* Results */}
             {searched && (
               <View style={styles.resultsContainer}>
-                <Text style={styles.resultsTitle}>
-                  {flights.length} vol{flights.length > 1 ? 's' : ''} trouvé{flights.length > 1 ? 's' : ''}
-                </Text>
+                <View style={styles.resultsHeader}>
+                  <Text style={styles.resultsTitle}>
+                    {flights.length} vol{flights.length > 1 ? 's' : ''} trouvé{flights.length > 1 ? 's' : ''}
+                  </Text>
+                  {isRealData && (
+                    <View style={styles.realDataBadge}>
+                      <Text style={styles.realDataText}>EN DIRECT</Text>
+                    </View>
+                  )}
+                </View>
 
                 {flights.map((flight) => (
                   <View key={flight.flight_id} style={styles.flightCard}>
@@ -364,7 +483,7 @@ export default function SearchScreen() {
                           </View>
                         </View>
                         <View style={styles.priceTag}>
-                          <Text style={styles.price}>{flight.price}</Text>
+                          <Text style={styles.price}>{Math.round(flight.price)}</Text>
                           <Text style={styles.currency}>{flight.currency}</Text>
                         </View>
                       </View>
@@ -404,6 +523,12 @@ export default function SearchScreen() {
                           <Ionicons name="people-outline" size={14} color="#9D4EDD" />
                           <Text style={styles.detailText}>{flight.available_seats} places</Text>
                         </View>
+                        {flight.is_real_data && (
+                          <View style={styles.detailItem}>
+                            <Ionicons name="checkmark-circle" size={14} color="#10B981" />
+                            <Text style={[styles.detailText, { color: '#10B981' }]}>Réel</Text>
+                          </View>
+                        )}
                       </View>
 
                       {/* Book Button */}
@@ -415,6 +540,15 @@ export default function SearchScreen() {
                     </LinearGradient>
                   </View>
                 ))}
+
+                {/* Back to search */}
+                <TouchableOpacity 
+                  style={styles.backButton}
+                  onPress={() => setSearched(false)}
+                >
+                  <Ionicons name="arrow-back" size={20} color="#C77DFF" />
+                  <Text style={styles.backButtonText}>Nouvelle recherche</Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -422,6 +556,9 @@ export default function SearchScreen() {
               <View style={styles.noResults}>
                 <Ionicons name="sad-outline" size={48} color="#9D4EDD" />
                 <Text style={styles.noResultsText}>Aucun vol trouvé</Text>
+                <TouchableOpacity onPress={() => setSearched(false)}>
+                  <Text style={styles.tryAgainText}>Essayer une autre recherche</Text>
+                </TouchableOpacity>
               </View>
             )}
           </ScrollView>
@@ -452,7 +589,8 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, paddingTop: 8 },
-  headerTitle: { fontSize: 26, fontWeight: 'bold', color: '#FFF', marginLeft: 12 },
+  headerTitle: { fontSize: 26, fontWeight: 'bold', color: '#FFF', marginLeft: 12, flex: 1 },
+  statusDot: { width: 12, height: 12, borderRadius: 6, marginRight: 4 },
   subtitle: { fontSize: 14, color: '#9D4EDD', marginBottom: 20, marginLeft: 44 },
   searchCard: { marginBottom: 24, borderRadius: 20, overflow: 'hidden' },
   cardGradient: { padding: 20 },
@@ -495,7 +633,10 @@ const styles = StyleSheet.create({
   popularCountry: { fontSize: 11, color: '#9D4EDD' },
   popularPrice: { fontSize: 13, fontWeight: '700', color: '#C77DFF' },
   resultsContainer: { marginBottom: 24 },
-  resultsTitle: { fontSize: 18, fontWeight: 'bold', color: '#C77DFF', marginBottom: 16 },
+  resultsHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  resultsTitle: { fontSize: 18, fontWeight: 'bold', color: '#C77DFF', flex: 1 },
+  realDataBadge: { backgroundColor: '#10B981', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  realDataText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
   flightCard: { marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
   flightGradient: { padding: 16 },
   flightHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
@@ -538,8 +679,11 @@ const styles = StyleSheet.create({
   bookButton: { borderRadius: 10, overflow: 'hidden' },
   bookButtonGradient: { paddingVertical: 12, alignItems: 'center' },
   bookButtonText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  backButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16 },
+  backButtonText: { color: '#C77DFF', fontSize: 14, fontWeight: '600', marginLeft: 8 },
   noResults: { alignItems: 'center', paddingVertical: 48 },
   noResultsText: { fontSize: 18, fontWeight: 'bold', color: '#C77DFF', marginTop: 16 },
+  tryAgainText: { color: '#9D4EDD', marginTop: 12, textDecorationLine: 'underline' },
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#1E0B3C', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '80%' },
