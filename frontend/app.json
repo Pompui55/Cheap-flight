@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cheap Flight",
     "slug": "cheap-flight",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cheap-flight",
@@ -24,8 +24,8 @@
       }
     },
     "android": {
-      "package": "com.cheapflight.app",
-      "versionCode": 1,
+      "package": "com.pompui.cheapflightfinal",
+      "versionCode": 13,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0118"
@@ -53,7 +53,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0A0118"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true
