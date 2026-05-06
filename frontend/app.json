@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cheap Flight",
     "slug": "cheap-flight",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cheap-flight",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.pompui.cheapflightfinal",
-      "versionCode": 13,
+      "versionCode": 16,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0118"
