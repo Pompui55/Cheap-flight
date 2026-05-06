@@ -7,13 +7,13 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
+       tabBarStyle: {
           backgroundColor: '#1E0B3C',
           borderTopColor: '#5A189A',
-          borderTopWidth: 1,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 5,
+          borderTopWidth: 0,      // On enlève la bordure pour un look plus moderne
+          height: 95,             // On augmente la hauteur totale
+          paddingBottom: 35,      // ON REMONTE LES ICÔNES (C'est le plus important !)
+          paddingTop: 10,         // On donne un peu d'espace en haut
         },
         tabBarActiveTintColor: '#C77DFF',
         tabBarInactiveTintColor: '#9D4EDD',

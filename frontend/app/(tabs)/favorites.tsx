@@ -3,176 +3,257 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
   ActivityIndicator,
+  Alert,
+  RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-interface Flight {
-  flight_id: string;
-  airline: string;
-  origin: string;
-  destination: string;
-  departure_time: string;
-  arrival_time: string;
-  duration: string;
-  price: number;
-  currency: string;
-  stops: number;
-  flight_number: string;
-}
-
 interface Favorite {
   favorite_id: string;
-  flight: Flight;
+  user_id: string;
+  origin: string;
+  destination: string;
+  origin_city: string;
+  destination_city: string;
   created_at: string;
 }
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
+
+  const checkAuth = async () => {
+    const token = await AsyncStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    return token;
+  };
+
+  const loadFavorites = async () => {
+    try {
+      const token = await checkAuth();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${BACKEND_URL}/api/favorites`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFavorites(data);
+      } else if (response.status === 401) {
+        await AsyncStorage.removeItem('token');
+        setIsLoggedIn(false);
+      }
+    } catch (error) {
+      console.error('Load favorites error:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     loadFavorites();
   }, []);
 
-  const loadFavorites = async () => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/api/flights/favorites`, {
-        withCredentials: true,
-      });
-      setFavorites(response.data.favorites);
-    } catch (error) {
-      console.error('Load favorites error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadFavorites();
+  }, []);
 
   const removeFavorite = async (favoriteId: string) => {
-    try {
-      await axios.delete(`${BACKEND_URL}/api/flights/favorites/${favoriteId}`, {
-        withCredentials: true,
-      });
-      setFavorites(favorites.filter((f) => f.favorite_id !== favoriteId));
-    } catch (error) {
-      console.error('Remove favorite error:', error);
-      alert('Failed to remove favorite');
-    }
+    Alert.alert(
+      'Supprimer le favori',
+      'Voulez-vous vraiment supprimer ce trajet de vos favoris ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem('token');
+              const response = await fetch(`${BACKEND_URL}/api/favorites/${favoriteId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                },
+              });
+
+              if (response.ok) {
+                setFavorites(favorites.filter((f) => f.favorite_id !== favoriteId));
+              }
+            } catch (error) {
+              console.error('Remove favorite error:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer le favori');
+            }
+          },
+        },
+      ]
+    );
   };
+
+  const searchFavorite = (favorite: Favorite) => {
+    // Navigate to search with pre-filled values
+    Alert.alert(
+      'Rechercher ce trajet',
+      `${favorite.origin_city} → ${favorite.destination_city}`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Rechercher',
+          onPress: () => {
+            // Store search params and navigate
+            AsyncStorage.setItem('searchOrigin', favorite.origin);
+            AsyncStorage.setItem('searchDestination', favorite.destination);
+            router.push('/(tabs)/search');
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <LinearGradient colors={['#0A0118', '#1E0B3C']} style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#C77DFF" />
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <LinearGradient colors={['#0A0118', '#1E0B3C']} style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.header}>
+            <Ionicons name="heart" size={28} color="#C77DFF" />
+            <Text style={styles.headerTitle}>Favoris</Text>
+          </View>
+          <View style={styles.emptyContainer}>
+            <Ionicons name="lock-closed-outline" size={64} color="#5A189A" />
+            <Text style={styles.emptyText}>Connexion requise</Text>
+            <Text style={styles.emptySubtext}>
+              Connectez-vous pour sauvegarder vos trajets favoris
+            </Text>
+            <Pressable
+              style={styles.loginButton}
+              onPress={() => router.push('/auth')}
+            >
+              <LinearGradient
+                colors={['#7B2CBF', '#C77DFF']}
+                style={styles.loginButtonGradient}
+              >
+                <Text style={styles.loginButtonText}>Se connecter</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={['#0A0118', '#1E0B3C']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
         <View style={styles.header}>
-          <Ionicons name="heart" size={32} color="#E0AAFF" />
-          <Text style={styles.headerTitle}>Favorites</Text>
+          <Ionicons name="heart" size={28} color="#C77DFF" />
+          <Text style={styles.headerTitle}>Favoris</Text>
+          <Text style={styles.headerCount}>{favorites.length}</Text>
         </View>
 
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#C77DFF" />
-          </View>
-        ) : favorites.length === 0 ? (
+        {favorites.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="heart-outline" size={64} color="#5A189A" />
-            <Text style={styles.emptyText}>No favorites yet</Text>
+            <Text style={styles.emptyText}>Aucun favori</Text>
             <Text style={styles.emptySubtext}>
-              Start adding flights to your favorites
+              Recherchez des vols et ajoutez vos trajets préférés !
             </Text>
           </View>
         ) : (
-          <ScrollView style={styles.scrollView}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#C77DFF"
+              />
+            }
+          >
             {favorites.map((favorite) => (
-              <View key={favorite.favorite_id} style={styles.flightCard}>
+              <Pressable
+                key={favorite.favorite_id}
+                style={({ pressed }) => [
+                  styles.favoriteCard,
+                  pressed && styles.cardPressed,
+                ]}
+                onPress={() => searchFavorite(favorite)}
+              >
                 <LinearGradient
                   colors={['#240046', '#3C096C']}
-                  style={styles.flightGradient}
+                  style={styles.cardGradient}
                 >
-                  {/* Header */}
-                  <View style={styles.flightHeader}>
-                    <View style={styles.airlineInfo}>
-                      <Ionicons name="airplane" size={24} color="#C77DFF" />
-                      <View style={styles.airlineText}>
-                        <Text style={styles.airline}>{favorite.flight.airline}</Text>
-                        <Text style={styles.flightNumber}>
-                          {favorite.flight.flight_number}
-                        </Text>
-                      </View>
-                    </View>
-                    <TouchableOpacity onPress={() => removeFavorite(favorite.favorite_id)}>
-                      <Ionicons name="heart" size={24} color="#E0AAFF" />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Route */}
-                  <View style={styles.routeContainer}>
+                  <View style={styles.routeRow}>
                     <View style={styles.routePoint}>
-                      <Text style={styles.routeTime}>
-                        {new Date(favorite.flight.departure_time).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-                      <Text style={styles.routeCode}>{favorite.flight.origin}</Text>
+                      <Text style={styles.routeCode}>{favorite.origin}</Text>
+                      <Text style={styles.routeCity}>{favorite.origin_city}</Text>
                     </View>
 
                     <View style={styles.routeLine}>
-                      <View style={styles.routeDot} />
+                      <View style={styles.dot} />
                       <View style={styles.line} />
-                      <Ionicons name="airplane" size={16} color="#C77DFF" />
+                      <Ionicons name="airplane" size={18} color="#C77DFF" />
                       <View style={styles.line} />
-                      <View style={styles.routeDot} />
+                      <View style={styles.dot} />
                     </View>
 
                     <View style={styles.routePoint}>
-                      <Text style={styles.routeTime}>
-                        {new Date(favorite.flight.arrival_time).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
-                      <Text style={styles.routeCode}>{favorite.flight.destination}</Text>
+                      <Text style={styles.routeCode}>{favorite.destination}</Text>
+                      <Text style={styles.routeCity}>{favorite.destination_city}</Text>
                     </View>
                   </View>
 
-                  {/* Details */}
-                  <View style={styles.flightDetails}>
-                    <View style={styles.detailItem}>
-                      <Ionicons name="time" size={16} color="#9D4EDD" />
-                      <Text style={styles.detailText}>{favorite.flight.duration}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Ionicons name="swap-horizontal" size={16} color="#9D4EDD" />
-                      <Text style={styles.detailText}>
-                        {favorite.flight.stops === 0 ? 'Direct' : `${favorite.flight.stops} stop(s)`}
-                      </Text>
-                    </View>
-                  </View>
+                  <View style={styles.cardFooter}>
+                    <Pressable
+                      style={styles.searchButton}
+                      onPress={() => searchFavorite(favorite)}
+                    >
+                      <Ionicons name="search" size={16} color="#C77DFF" />
+                      <Text style={styles.searchButtonText}>Rechercher</Text>
+                    </Pressable>
 
-                  {/* Price */}
-                  <View style={styles.priceContainer}>
-                    <Text style={styles.price}>
-                      ${favorite.flight.price.toFixed(2)}
-                    </Text>
-                    <TouchableOpacity style={styles.bookButton}>
-                      <LinearGradient
-                        colors={['#7B2CBF', '#5A189A']}
-                        style={styles.bookButtonGradient}
-                      >
-                        <Text style={styles.bookButtonText}>Book Now</Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
+                    <Pressable
+                      style={styles.deleteButton}
+                      onPress={() => removeFavorite(favorite.favorite_id)}
+                    >
+                      <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                    </Pressable>
                   </View>
                 </LinearGradient>
-              </View>
+              </Pressable>
             ))}
           </ScrollView>
         )}
@@ -182,29 +263,37 @@ export default function FavoritesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    paddingTop: 8,
+    paddingTop: 10,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFF',
-    marginLeft: 12,
+    marginLeft: 10,
+    flex: 1,
   },
+  headerCount: {
+    fontSize: 16,
+    color: '#9D4EDD',
+    backgroundColor: 'rgba(157,78,221,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -222,70 +311,65 @@ const styles = StyleSheet.create({
     color: '#9D4EDD',
     marginTop: 8,
     textAlign: 'center',
+    lineHeight: 20,
   },
-  scrollView: {
-    flex: 1,
-    padding: 16,
+
+  loginButton: {
+    marginTop: 24,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  flightCard: {
-    marginBottom: 16,
+  loginButtonGradient: {
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+  },
+  loginButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  scrollView: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+
+  favoriteCard: {
+    marginBottom: 12,
     borderRadius: 16,
     overflow: 'hidden',
   },
-  flightGradient: {
-    padding: 16,
-  },
-  flightHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  airlineInfo: {
+  cardPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
+  cardGradient: { padding: 16 },
+
+  routeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  airlineText: {
-    marginLeft: 12,
-  },
-  airline: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFF',
-  },
-  flightNumber: {
-    fontSize: 12,
-    color: '#9D4EDD',
-  },
-  routeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 16,
   },
   routePoint: {
     alignItems: 'center',
-  },
-  routeTime: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 4,
+    width: 70,
   },
   routeCode: {
-    fontSize: 14,
-    color: '#E0AAFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFF',
   },
+  routeCity: {
+    fontSize: 11,
+    color: '#9D4EDD',
+    marginTop: 2,
+  },
+
   routeLine: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginHorizontal: 16,
+    marginHorizontal: 8,
   },
-  routeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#C77DFF',
   },
   line: {
@@ -293,45 +377,32 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: '#7B2CBF',
   },
-  flightDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#5A189A',
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  detailText: {
-    color: '#E0AAFF',
-    fontSize: 12,
-    marginLeft: 4,
-  },
-  priceContainer: {
+
+  cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#5A189A',
   },
-  price: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#C77DFF',
-  },
-  bookButton: {
+
+  searchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(199,125,255,0.15)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    overflow: 'hidden',
   },
-  bookButtonGradient: {
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-  },
-  bookButtonText: {
-    color: '#FFF',
+  searchButtonText: {
+    color: '#C77DFF',
     fontSize: 14,
     fontWeight: '600',
+    marginLeft: 6,
+  },
+
+  deleteButton: {
+    padding: 8,
   },
 });

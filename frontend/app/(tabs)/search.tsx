@@ -1,4 +1,5 @@
 import {
+  Image,
   View,
   Text,
   StyleSheet,
@@ -12,8 +13,10 @@ import {
   FlatList,
   Alert,
   Pressable,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 
@@ -478,6 +481,12 @@ export default function SearchScreen() {
   const [origin, setOrigin] = useState('CDG');
   const [destination, setDestination] = useState('');
   const [departureDate, setDepartureDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showReturnPicker, setShowReturnPicker] = useState(false);
+  const [tripType, setTripType] = useState<'oneway' | 'roundtrip'>('oneway');
+  const [travelers, setTravelers] = useState(1);
+  
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -551,14 +560,13 @@ export default function SearchScreen() {
     setSelectedFlight(flight);
   };
 
-  const handleBookFlight = () => {
-    if (selectedFlight) {
-      Alert.alert(
-        'Réservation',
-        `Vol ${selectedFlight.flight_number}\n${selectedFlight.origin} → ${selectedFlight.destination}\n\nPrix: ${selectedFlight.price} ${selectedFlight.currency}\n\nFonctionnalité de paiement bientôt disponible!`,
-        [{ text: 'OK', onPress: () => setSelectedFlight(null) }]
-      );
-    }
+const handleBook = (flight: Flight) => {
+    const formattedDate = date.toISOString().split('T')[0].replace(/-/g, '');
+    const aviasalesUrl = `https://www.aviasales.com/search/${flight.origin}${formattedDate}${flight.destination}1?marker=515b05`;
+    
+    Linking.openURL(aviasalesUrl).catch(() => 
+      Alert.alert("Erreur", "Impossible d'ouvrir le lien vers Aviasales")
+    );
   };
 
   const getAirportName = (code: string) => {
@@ -640,20 +648,60 @@ export default function SearchScreen() {
                 <Ionicons name="chevron-forward" size={20} color="#C77DFF" />
               </Pressable>
 
-              {/* Date */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="calendar-outline" size={20} color="#C77DFF" />
-                <View style={styles.inputContent}>
-                  <Text style={styles.inputLabel}>DATE DE DÉPART</Text>
-                  <TextInput
-                    style={styles.dateInput}
-                    value={departureDate}
-                    onChangeText={setDepartureDate}
-                    placeholder="AAAA-MM-JJ"
-                    placeholderTextColor="#9D4EDD"
-                  />
-                </View>
-              </View>
+{/* Trip Type Toggle */}
+<View style={styles.tripTypeContainer}>
+  <Pressable
+    style={[styles.tripTypeButton, tripType === 'oneway' && styles.tripTypeActive]}
+    onPress={() => setTripType('oneway')}
+  >
+    <Text style={[styles.tripTypeText, tripType === 'oneway' && styles.tripTypeTextActive]}>Aller simple</Text>
+  </Pressable>
+  <Pressable
+    style={[styles.tripTypeButton, tripType === 'roundtrip' && styles.tripTypeActive]}
+    onPress={() => setTripType('roundtrip')}
+  >
+    <Text style={[styles.tripTypeText, tripType === 'roundtrip' && styles.tripTypeTextActive]}>Aller-retour</Text>
+  </Pressable>
+</View>
+
+{/* Departure Date */}
+<Pressable style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
+  <Ionicons name="calendar-outline" size={20} color="#C77DFF" />
+  <View style={styles.inputContent}>
+    <Text style={styles.inputLabel}>DATE DE DÉPART</Text>
+    <Text style={styles.inputValue}>{departureDate || 'Choisir une date'}</Text>
+  </View>
+  <Ionicons name="chevron-forward" size={20} color="#C77DFF" />
+</Pressable>
+
+{/* Return Date (if roundtrip) */}
+{tripType === 'roundtrip' && (
+  <Pressable style={styles.inputContainer} onPress={() => setShowReturnPicker(true)}>
+    <Ionicons name="calendar-outline" size={20} color="#C77DFF" />
+    <View style={styles.inputContent}>
+      <Text style={styles.inputLabel}>DATE DE RETOUR</Text>
+      <Text style={styles.inputValue}>{returnDate || 'Choisir une date'}</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={20} color="#C77DFF" />
+  </Pressable>
+)}
+
+{/* Travelers */}
+<View style={styles.inputContainer}>
+  <Ionicons name="people-outline" size={20} color="#C77DFF" />
+  <View style={styles.inputContent}>
+    <Text style={styles.inputLabel}>VOYAGEURS</Text>
+    <Text style={styles.inputValue}>{travelers} {travelers > 1 ? 'passagers' : 'passager'}</Text>
+  </View>
+  <View style={styles.travelersControl}>
+    <Pressable style={styles.travelerBtn} onPress={() => setTravelers(Math.max(1, travelers - 1))}>
+      <Ionicons name="remove" size={18} color="#C77DFF" />
+    </Pressable>
+    <Pressable style={styles.travelerBtn} onPress={() => setTravelers(Math.min(9, travelers + 1))}>
+      <Ionicons name="add" size={18} color="#C77DFF" />
+    </Pressable>
+  </View>
+</View>
 
               {/* Search Button */}
               <Pressable
@@ -726,8 +774,16 @@ export default function SearchScreen() {
                     <View style={styles.flightHeader}>
                       <View style={styles.airlineInfo}>
                         <View style={styles.airlineLogo}>
-                          <Ionicons name="airplane" size={16} color="#C77DFF" />
-                        </View>
+                        {flight.airline_logo ? (
+                        <Image 
+                        source={{ uri: flight.airline_logo }} 
+                        style={styles.airlineLogoImage}
+                       resizeMode="contain"
+                        />
+                        ) : (
+                       <Ionicons name="airplane" size={16} color="#C77DFF" />
+                        )}
+                       </View>
                         <View>
                           <Text style={styles.airline}>{flight.airline}</Text>
                           <Text style={styles.flightNumber}>{flight.flight_number}</Text>
@@ -929,6 +985,37 @@ export default function SearchScreen() {
         </View>
       </Modal>
 
+{/* Date Picker Modal */}
+{showDatePicker && (
+  <DateTimePicker
+    value={departureDate ? new Date(departureDate) : new Date()}
+    mode="date"
+    display="default"
+    minimumDate={new Date()}
+    onChange={(event, selectedDate) => {
+      setShowDatePicker(false);
+      if (selectedDate) {
+        setDepartureDate(selectedDate.toISOString().split('T')[0]);
+      }
+    }}
+  />
+)}
+
+{/* Return Date Picker Modal */}
+{showReturnPicker && (
+  <DateTimePicker
+    value={returnDate ? new Date(returnDate) : new Date()}
+    mode="date"
+    display="default"
+    minimumDate={departureDate ? new Date(departureDate) : new Date()}
+    onChange={(event, selectedDate) => {
+      setShowReturnPicker(false);
+      if (selectedDate) {
+        setReturnDate(selectedDate.toISOString().split('T')[0]);
+      }
+    }}
+  />
+)}
       {/* Flight Details Modal */}
       <Modal visible={selectedFlight !== null} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
@@ -978,7 +1065,7 @@ export default function SearchScreen() {
 
                 <Pressable
                   style={({ pressed }) => [styles.bookButton, pressed && styles.buttonPressed]}
-                  onPress={handleBookFlight}
+                 onPress={() => handleBook(selectedFlight)}
                 >
                   <LinearGradient
                     colors={['#7B2CBF', '#C77DFF']}
@@ -1057,6 +1144,7 @@ const styles = StyleSheet.create({
   flightHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   airlineInfo: { flexDirection: 'row', alignItems: 'center' },
   airlineLogo: { width: 32, height: 32, borderRadius: 8, backgroundColor: 'rgba(199,125,255,0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  airlineLogoImage: { width: 28, height: 28, borderRadius: 4 },
   airline: { fontSize: 13, fontWeight: 'bold', color: '#FFF' },
   flightNumber: { fontSize: 11, color: '#9D4EDD' },
   priceContainer: { alignItems: 'flex-end' },
@@ -1111,4 +1199,41 @@ const styles = StyleSheet.create({
   bookButton: { borderRadius: 12, overflow: 'hidden', marginTop: 10 },
   bookButtonGradient: { padding: 16, alignItems: 'center' },
   bookButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+tripTypeContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 10,
+  },
+  tripTypeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  tripTypeActive: {
+    backgroundColor: '#7B2CBF',
+  },
+  tripTypeText: {
+    color: '#9D4EDD',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tripTypeTextActive: {
+    color: '#FFF',
+  },
+  travelersControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  travelerBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(199,125,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
 });

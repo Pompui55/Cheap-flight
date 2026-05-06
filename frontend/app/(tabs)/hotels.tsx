@@ -1,5 +1,4 @@
 
-cat > ~/Cheap-flight/frontend/app/\(tabs\)/hotels.tsx << 'ENDFILE'
 import {
   View,
   Text,
@@ -421,6 +420,4 @@ const styles = StyleSheet.create({
   cityName: { fontSize: 16, fontWeight: '600', color: '#FFF' },
   cityCountry: { fontSize: 13, color: '#9D4EDD' },
 });
-ENDFILE
-```
 
