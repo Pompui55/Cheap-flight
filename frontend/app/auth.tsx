@@ -53,11 +53,11 @@ export default function AuthScreen() {
         <TextInput style={styles.input} placeholder="Mot de passe" placeholderTextColor="#9D4EDD" value={password} onChangeText={setPassword} secureTextEntry />
         <TouchableOpacity onPress={handleSubmit} style={styles.button} disabled={isLoading}>
           <LinearGradient colors={['#7B2CBF', '#5A189A']} style={styles.buttonGradient}>
-            {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>{isLogin ? 'Se connecter' : 'S'\'inscrire'}</Text>}
+            {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>{isLogin ? 'Connexion' : 'Inscription'}</Text>}
           </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-          <Text style={styles.switchText}>{isLogin ? 'Pas de compte ? S'\'inscrire' : 'Deja un compte ? Se connecter'}</Text>
+          <Text style={styles.switchText}>{isLogin ? 'Pas de compte ? Inscrivez-vous' : 'Deja un compte ? Connectez-vous'}</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>
