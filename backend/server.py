@@ -1,17 +1,20 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Header
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Header, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
 import random
+import bcrypt
+import jwt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -24,6 +27,11 @@ db = client[os.environ.get('DB_NAME', 'cheap_flight')]
 # Aviationstack API
 AVIATIONSTACK_API_KEY = os.environ.get('AVIATIONSTACK_API_KEY', '')
 
+# JWT Secret
+JWT_SECRET = os.environ.get('JWT_SECRET', 'cheap-flight-secret-key-2026')
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_DAYS = 7
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,6 +41,58 @@ app = FastAPI(title="CHEAP FLIGHT API")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
+
+# Security
+security = HTTPBearer(auto_error=False)
+
+# ============= AUTH MODELS =============
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    name: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    user_id: str
+    email: str
+    name: str
+    created_at: str
+
+# ============= AUTH HELPERS =============
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def create_token(user_id: str) -> str:
+    payload = {
+        "user_id": user_id,
+        "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def decode_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    payload = decode_token(credentials.credentials)
+    user = await db.users.find_one({"user_id": payload["user_id"]})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 
 # ============= MODELS =============
 class Flight(BaseModel):
@@ -77,7 +137,7 @@ AIRPORTS = {
     "CMN": {"city": "Casablanca", "country": "Morocco", "name": "Mohammed V"},
     "ALG": {"city": "Algiers", "country": "Algeria", "name": "Houari Boumediene"},
     "TUN": {"city": "Tunis", "country": "Tunisia", "name": "Carthage"},
-    "ABJ": {"city": "Abidjan", "country": "Ivory Coast", "name": "Félix-Houphouët-Boigny"},
+    "ABJ": {"city": "Abidjan", "country": "Ivory Coast", "name": "Felix-Houphouet-Boigny"},
     "DKR": {"city": "Dakar", "country": "Senegal", "name": "Blaise Diagne"},
     "NYC": {"city": "New York", "country": "USA", "name": "All Airports"},
     "PAR": {"city": "Paris", "country": "France", "name": "All Airports"},
@@ -94,12 +154,11 @@ AIRLINES = [
     {"code": "KL", "name": "KLM"},
     {"code": "IB", "name": "Iberia"},
     {"code": "AT", "name": "Royal Air Maroc"},
-    {"code": "AH", "name": "Air Algérie"},
+    {"code": "AH", "name": "Air Algerie"},
 ]
 
 # ============= FLIGHT SEARCH =============
 async def get_aviationstack_flights(origin: str, destination: str, flight_date: str):
-    """Get real flight data from Aviationstack API"""
     if not AVIATIONSTACK_API_KEY:
         logger.warning("Aviationstack API key not found")
         return []
@@ -139,7 +198,6 @@ async def get_aviationstack_flights(origin: str, destination: str, flight_date: 
                     else:
                         duration = "N/A"
                     
-                    # Generate price based on duration
                     base_price = 50 + (duration_mins // 60 * 30) + random.randint(-20, 50)
                     
                     transformed_flight = {
@@ -169,7 +227,6 @@ async def get_aviationstack_flights(origin: str, destination: str, flight_date: 
         return []
 
 def generate_mock_flights(origin: str, destination: str, flight_date: str, count: int = 8):
-    """Generate mock flight data"""
     flights = []
     
     base_prices = {
@@ -177,14 +234,13 @@ def generate_mock_flights(origin: str, destination: str, flight_date: str, count
         ("CDG", "BCN"): 85, ("CDG", "LHR"): 95, ("PAR", "LON"): 95,
         ("CDG", "FCO"): 110, ("CDG", "CMN"): 120,
     }
-    base_price = base_prices.get((origin.upper(), destination.upper()), random.randint(150, 600))
+    base_price = base_prices.get((origin.upper(), destination.upper()), random.randint(400, 800))
     
     for i in range(count):
         airline = random.choice(AIRLINES)
         hour = random.randint(6, 22)
         minute = random.choice([0, 15, 30, 45])
         
-        # Duration based on destination
         if origin.upper()[:1] == destination.upper()[:1]:
             duration_hours = random.randint(1, 3)
         else:
@@ -219,52 +275,106 @@ def generate_mock_flights(origin: str, destination: str, flight_date: str, count
     flights.sort(key=lambda x: x["price"])
     return flights
 
-# ============= API ROUTES (PUBLIC - NO AUTH REQUIRED) =============
+# ============= FAVORITES MODEL =============
+class FavoriteCreate(BaseModel):
+    origin: str
+    destination: str
+    origin_city: str = ""
+    destination_city: str = ""
+
+# ============= ALERTS MODEL =============
+class AlertCreate(BaseModel):
+    origin: str
+    destination: str
+    origin_city: str = ""
+    destination_city: str = ""
+    target_price: float
+
+\n# ============= API ROUTES =============
 
 @api_router.get("/")
 async def root():
-    return {
-        "message": "CHEAP FLIGHT API",
-        "status": "online",
-        "version": "2.0",
-        "aviationstack": "enabled" if AVIATIONSTACK_API_KEY else "disabled"
+    return {"message": "CHEAP FLIGHT API", "status": "online", "version": "3.0"}
+
+# ============= AUTH ROUTES =============
+
+@api_router.post("/auth/register")
+async def register(user_data: UserRegister):
+    existing = await db.users.find_one({"email": user_data.email.lower()})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    if len(user_data.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    user_id = str(uuid.uuid4())
+    user = {
+        "user_id": user_id,
+        "email": user_data.email.lower(),
+        "name": user_data.name,
+        "password_hash": hash_password(user_data.password),
+        "created_at": datetime.now(timezone.utc).isoformat()
     }
+    
+    await db.users.insert_one(user)
+    token = create_token(user_id)
+    
+    return {
+        "user": {"user_id": user_id, "email": user["email"], "name": user["name"], "created_at": user["created_at"]},
+        "token": token
+    }
+
+@api_router.post("/auth/login")
+async def login(credentials: UserLogin):
+    user = await db.users.find_one({"email": credentials.email.lower()})
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not verify_password(credentials.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    token = create_token(user["user_id"])
+    
+    return {
+        "user": {"user_id": user["user_id"], "email": user["email"], "name": user["name"], "created_at": user["created_at"]},
+        "token": token
+    }
+
+@api_router.get("/auth/me")
+async def get_me(current_user: dict = Depends(get_current_user)):
+    return {"user_id": current_user["user_id"], "email": current_user["email"], "name": current_user["name"], "created_at": current_user["created_at"]}
+
+@api_router.post("/auth/logout")
+async def logout():
+    return {"message": "Logged out successfully"}
 
 @api_router.get("/airports")
 async def get_airports(query: str = None):
-    """Search airports"""
     if not query or len(query) < 2:
         return [{"code": k, **v} for k, v in list(AIRPORTS.items())[:10]]
     
     query_lower = query.lower()
     results = []
     for code, info in AIRPORTS.items():
-        if (query_lower in code.lower() or 
-            query_lower in info["city"].lower() or 
-            query_lower in info["country"].lower()):
+        if (query_lower in code.lower() or query_lower in info["city"].lower() or query_lower in info["country"].lower()):
             results.append({"code": code, **info})
     return results[:10]
 
 @api_router.post("/flights/search")
 async def search_flights(search: SearchRequest):
-    """Search flights - NO AUTH REQUIRED"""
     origin = search.origin.upper()
     destination = search.destination.upper()
     
-    # Map city codes to airport codes
     city_to_airport = {"PAR": "CDG", "NYC": "JFK", "LON": "LHR"}
     origin = city_to_airport.get(origin, origin)
     destination = city_to_airport.get(destination, destination)
     
-    # Try real API first
     flights = await get_aviationstack_flights(origin, destination, search.departure_date)
     
-    # Fallback to mock data
     if not flights:
-        logger.info("Using mock data")
         flights = generate_mock_flights(origin, destination, search.departure_date)
     
-    # Save to search history (anonymous)
     await db.search_history.insert_one({
         "id": str(uuid.uuid4()),
         "origin": origin,
@@ -277,7 +387,6 @@ async def search_flights(search: SearchRequest):
 
 @api_router.get("/flights/popular")
 async def get_popular():
-    """Get popular destinations"""
     return [
         {"origin": "CDG", "destination": "BCN", "city": "Barcelona", "country": "Spain", "price_from": 85},
         {"origin": "CDG", "destination": "LHR", "city": "London", "country": "UK", "price_from": 95},
@@ -289,8 +398,61 @@ async def get_popular():
         {"origin": "CDG", "destination": "DXB", "city": "Dubai", "country": "UAE", "price_from": 350},
     ]
 
-# Include router
-app.include_router(api_router)
+# ============= FAVORITES ROUTES =============
+
+@api_router.get("/favorites")
+async def get_favorites(current_user: dict = Depends(get_current_user)):
+    favorites = await db.favorites.find({"user_id": current_user["user_id"]}).to_list(100)
+    for f in favorites:
+        f.pop("_id", None)
+    return favorites
+
+@api_router.post("/favorites")
+async def add_favorite(fav: FavoriteCreate, current_user: dict = Depends(get_current_user)):
+    existing = await db.favorites.find_one({"user_id": current_user["user_id"], "origin": fav.origin.upper(), "destination": fav.destination.upper()})
+    if existing:
+        raise HTTPException(status_code=400, detail="Already in favorites")
+    favorite = {"favorite_id": str(uuid.uuid4()), "user_id": current_user["user_id"], "origin": fav.origin.upper(), "destination": fav.destination.upper(), "origin_city": fav.origin_city, "destination_city": fav.destination_city, "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.favorites.insert_one(favorite)
+    favorite.pop("_id", None)
+    return favorite
+
+@api_router.delete("/favorites/{favorite_id}")
+async def delete_favorite(favorite_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.favorites.delete_one({"favorite_id": favorite_id, "user_id": current_user["user_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Favorite not found")
+    return {"message": "Deleted"}
+
+@api_router.get("/alerts")
+async def get_alerts(current_user: dict = Depends(get_current_user)):
+    alerts = await db.alerts.find({"user_id": current_user["user_id"]}).to_list(100)
+    for a in alerts:
+        a.pop("_id", None)
+    return alerts
+
+@api_router.post("/alerts")
+async def create_alert(alert: AlertCreate, current_user: dict = Depends(get_current_user)):
+    alert_doc = {"alert_id": str(uuid.uuid4()), "user_id": current_user["user_id"], "origin": alert.origin.upper(), "destination": alert.destination.upper(), "origin_city": alert.origin_city, "destination_city": alert.destination_city, "target_price": alert.target_price, "is_active": True, "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.alerts.insert_one(alert_doc)
+    alert_doc.pop("_id", None)
+    return alert_doc
+
+@api_router.put("/alerts/{alert_id}")
+async def toggle_alert(alert_id: str, current_user: dict = Depends(get_current_user)):
+    alert = await db.alerts.find_one({"alert_id": alert_id, "user_id": current_user["user_id"]})
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    await db.alerts.update_one({"alert_id": alert_id}, {"$set": {"is_active": not alert.get("is_active", True)}})
+    return {"alert_id": alert_id, "is_active": not alert.get("is_active", True)}
+
+@api_router.delete("/alerts/{alert_id}")
+async def delete_alert(alert_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.alerts.delete_one({"alert_id": alert_id, "user_id": current_user["user_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return {"message": "Deleted"}
+\napp.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
