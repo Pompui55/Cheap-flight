@@ -15,8 +15,8 @@ export default function TabLayout() {
           paddingBottom: 35,      // ON REMONTE LES ICÔNES (C'est le plus important !)
           paddingTop: 10,         // On donne un peu d'espace en haut
         },
-        tabBarActiveTintColor: '#C77DFF',
-        tabBarInactiveTintColor: '#9D4EDD',
+        tabBarActiveTintColor: '#FFD700',
+        tabBarInactiveTintColor: '#FFA500',
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
@@ -29,7 +29,7 @@ export default function TabLayout() {
         options={{
           title: 'Vols',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="airplane" size={22} color={color} />
+            <Ionicons name="airplane" size={28} color={color} />
           ),
         }}
       />
@@ -38,7 +38,7 @@ export default function TabLayout() {
         options={{
           title: 'Hôtels',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bed" size={22} color={color} />
+            <Ionicons name="bed" size={28} color={color} />
           ),
         }}
       />
@@ -47,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Voitures',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="car-sport" size={22} color={color} />
+            <Ionicons name="car-sport" size={28} color={color} />
           ),
         }}
       />
@@ -56,7 +56,7 @@ export default function TabLayout() {
         options={{
           title: 'Favoris',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={22} color={color} />
+            <Ionicons name="heart" size={28} color={color} />
           ),
         }}
       />
@@ -65,7 +65,7 @@ export default function TabLayout() {
         options={{
           title: 'Alertes',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="notifications" size={22} color={color} />
+            <Ionicons name="notifications" size={28} color={color} />
           ),
         }}
       />
@@ -74,7 +74,7 @@ export default function TabLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={22} color={color} />
+            <Ionicons name="person" size={28} color={color} />
           ),
         }}
       />
