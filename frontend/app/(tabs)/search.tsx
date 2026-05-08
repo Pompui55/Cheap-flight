@@ -561,7 +561,7 @@ export default function SearchScreen() {
   };
 
 const handleBook = (flight: Flight) => {
-    const formattedDate = date.toISOString().split('T')[0].replace(/-/g, '');
+    const formattedDate = departureDate.replace(/-/g, "");
     const aviasalesUrl = `https://www.aviasales.com/search/${flight.origin}${formattedDate}${flight.destination}1?marker=515b05`;
     
     Linking.openURL(aviasalesUrl).catch(() => 
