@@ -13,13 +13,48 @@ import { useAuthStore } from '../../stores/authStore';
 import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
   const router = useRouter();
+
+    return (
+      <LinearGradient colors={['#0A0118', '#1E0B3C']} style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+        <Ionicons name="person-circle" size={100} color="#FFD700" />
+        <Text style={{color:'#FFD700',fontSize:24,marginTop:20,fontWeight:'bold'}}>Connectez-vous</Text>
+        <TouchableOpacity onPress={() => router.push('/auth')} style={{marginTop:30,backgroundColor:'#FFD700',paddingHorizontal:40,paddingVertical:15,borderRadius:12}}>
+          <Text style={{color:'#0A0118',fontSize:18,fontWeight:'bold'}}>Se connecter</Text>
+        </TouchableOpacity>
+      </LinearGradient>
+    );
+  }
 
   const handleLogout = async () => {
     await logout();
     router.replace('/auth');
   };
+
+  
+    return (
+      <LinearGradient colors={['#0A0118', '#1E0B3C']} style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+        <Ionicons name="person-circle" size={100} color="#FFD700" />
+        <Text style={{color:'#FFD700',fontSize:24,marginTop:20,fontWeight:'bold'}}>Connectez-vous</Text>
+        <TouchableOpacity onPress={() => router.push('/auth')} style={{marginTop:30,backgroundColor:'#FFD700',paddingHorizontal:40,paddingVertical:15,borderRadius:12}}>
+          <Text style={{color:'#0A0118',fontSize:18,fontWeight:'bold'}}>Se connecter</Text>
+        </TouchableOpacity>
+      </LinearGradient>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <LinearGradient colors={['#0A0118', '#1E0B3C']} style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+        <Ionicons name="person-circle" size={100} color="#FFD700" />
+        <Text style={{color:'#FFD700',fontSize:24,marginTop:20,fontWeight:'bold'}}>Connectez-vous</Text>
+        <TouchableOpacity onPress={() => router.push('/auth')} style={{marginTop:30,backgroundColor:'#FFD700',paddingHorizontal:40,paddingVertical:15,borderRadius:12}}>
+          <Text style={{color:'#0A0118',fontSize:18,fontWeight:'bold'}}>Se connecter</Text>
+        </TouchableOpacity>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={['#0A0118', '#1E0B3C']} style={styles.container}>
@@ -230,7 +265,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFD700',
     marginBottom: 4,
   },
   userEmail: {
@@ -254,12 +289,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFD700',
     marginTop: 8,
   },
   statLabel: {
     fontSize: 12,
-    color: '#E0AAFF',
+    color: '#FFD700',
     marginTop: 4,
   },
   statDivider: {
@@ -294,7 +329,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: '#FFF',
+    color: '#FFD700',
     marginLeft: 12,
   },
   menuItemRight: {
@@ -321,7 +356,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#FFD700',
     marginLeft: 8,
   },
   version: {

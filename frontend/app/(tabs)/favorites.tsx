@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFD700',
     marginLeft: 10,
     flex: 1,
   },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   loginButtonText: {
-    color: '#FFF',
+    color: '#FFD700',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   routeCode: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFD700',
   },
   routeCity: {
     fontSize: 11,

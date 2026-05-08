@@ -1091,7 +1091,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 40 },
   
   header: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFF', marginLeft: 10 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFD700', marginLeft: 10 },
   subtitle: { fontSize: 14, color: '#9D4EDD', marginBottom: 20, marginLeft: 38 },
   
   searchCard: { borderRadius: 20, overflow: 'hidden', marginBottom: 24 },
@@ -1109,8 +1109,8 @@ const styles = StyleSheet.create({
   },
   inputContent: { flex: 1, marginLeft: 12 },
   inputLabel: { fontSize: 10, color: '#9D4EDD', marginBottom: 2 },
-  inputValue: { fontSize: 15, color: '#FFF', fontWeight: '600' },
-  dateInput: { fontSize: 15, color: '#FFF', fontWeight: '600', padding: 0 },
+  inputValue: { fontSize: 15, color: '#FFD700', fontWeight: '600' },
+  dateInput: { fontSize: 15, color: '#FFD700', fontWeight: '600', padding: 0 },
   
   swapButton: {
     alignSelf: 'center',
@@ -1122,14 +1122,14 @@ const styles = StyleSheet.create({
   
   searchButton: { marginTop: 10, borderRadius: 12, overflow: 'hidden' },
   searchButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16 },
-  searchButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+  searchButtonText: { color: '#FFD700', fontSize: 16, fontWeight: '700', marginLeft: 8 },
   buttonPressed: { opacity: 0.8 },
   
   popularSection: { marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#E0AAFF', marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#FFD700', marginBottom: 12 },
   popularCard: { marginRight: 10, borderRadius: 12, overflow: 'hidden', width: 120 },
   popularGradient: { padding: 12, height: 85, justifyContent: 'space-between' },
-  popularCity: { fontSize: 14, fontWeight: 'bold', color: '#FFF' },
+  popularCity: { fontSize: 14, fontWeight: 'bold', color: '#FFD700' },
   popularCountry: { fontSize: 11, color: '#9D4EDD' },
   popularPrice: { fontSize: 13, fontWeight: '700', color: '#C77DFF' },
   cardPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
@@ -1154,15 +1154,15 @@ const styles = StyleSheet.create({
   routeContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   routePoint: { alignItems: 'center', width: 50 },
   routeTime: { fontSize: 16, fontWeight: 'bold', color: '#FFD700' },
-  routeCode: { fontSize: 12, color: '#E0AAFF', fontWeight: '600' },
+  routeCode: { fontSize: 12, color: '#FFD700', fontWeight: '600' },
   routeLine: { flexDirection: 'row', alignItems: 'center', flex: 1, marginHorizontal: 8 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#C77DFF' },
   line: { flex: 1, height: 2, backgroundColor: '#7B2CBF' },
   stopBadge: { backgroundColor: '#FF6B35', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginHorizontal: 4 },
-  stopText: { fontSize: 9, color: '#FFF', fontWeight: '600' },
+  stopText: { fontSize: 9, color: '#FFD700', fontWeight: '600' },
   
   flightFooter: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#5A189A' },
-  duration: { color: '#E0AAFF', fontSize: 12 },
+  duration: { color: '#FFD700', fontSize: 12 },
   seats: { color: '#9D4EDD', fontSize: 12 },
   
   noResults: { alignItems: 'center', paddingVertical: 40 },
@@ -1173,24 +1173,24 @@ const styles = StyleSheet.create({
   modalContent: { backgroundColor: '#1E0B3C', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', minHeight: '50%' },
   flightModalContent: { backgroundColor: '#1E0B3C', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 30 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#5A189A' },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFF' },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFD700' },
   
   searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', margin: 16, borderRadius: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: '#7B2CBF' },
-  modalSearchInput: { flex: 1, color: '#FFF', fontSize: 16, paddingVertical: 14, marginLeft: 10 },
+  modalSearchInput: { flex: 1, color: '#FFD700', fontSize: 16, paddingVertical: 14, marginLeft: 10 },
   
   airportItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#3C096C' },
   itemPressed: { backgroundColor: 'rgba(199,125,255,0.1)' },
   airportCodeBox: { width: 50, height: 50, borderRadius: 10, backgroundColor: 'rgba(199,125,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   airportCodeText: { fontSize: 14, fontWeight: 'bold', color: '#C77DFF' },
   airportDetails: { flex: 1, marginLeft: 14 },
-  airportCity: { fontSize: 16, fontWeight: '600', color: '#FFF' },
+  airportCity: { fontSize: 16, fontWeight: '600', color: '#FFD700' },
   airportCountry: { fontSize: 13, color: '#9D4EDD' },
   customAirportItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 2, borderBottomColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.05)' },
   
   flightDetails: { padding: 20 },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#3C096C' },
   detailLabel: { fontSize: 14, color: '#9D4EDD' },
-  detailValue: { fontSize: 14, fontWeight: '600', color: '#FFF' },
+  detailValue: { fontSize: 14, fontWeight: '600', color: '#FFD700' },
   
   priceSection: { alignItems: 'center', paddingVertical: 20, marginTop: 10 },
   totalLabel: { fontSize: 14, color: '#9D4EDD', marginBottom: 4 },
@@ -1198,7 +1198,7 @@ const styles = StyleSheet.create({
   
   bookButton: { borderRadius: 12, overflow: 'hidden', marginTop: 10 },
   bookButtonGradient: { padding: 16, alignItems: 'center' },
-  bookButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  bookButtonText: { color: '#FFD700', fontSize: 16, fontWeight: '700' },
 tripTypeContainer: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.1)',
@@ -1221,7 +1221,7 @@ tripTypeContainer: {
     fontWeight: '600',
   },
   tripTypeTextActive: {
-    color: '#FFF',
+    color: '#FFD700',
   },
   travelersControl: {
     flexDirection: 'row',

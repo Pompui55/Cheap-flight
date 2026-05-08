@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, padding: 16 },
   
   header: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFF', marginLeft: 10 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFD700', marginLeft: 10 },
   subtitle: { fontSize: 14, color: '#9D4EDD', marginBottom: 20, marginLeft: 38 },
   
   searchCard: { borderRadius: 20, overflow: 'hidden', marginBottom: 24 },
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   },
   inputContent: { flex: 1, marginLeft: 12 },
   inputLabel: { fontSize: 10, color: '#9D4EDD', marginBottom: 2 },
-  inputValue: { fontSize: 15, color: '#FFF', fontWeight: '600' },
+  inputValue: { fontSize: 15, color: '#FFD700', fontWeight: '600' },
   
   guestsControl: { flexDirection: 'row', alignItems: 'center' },
   guestBtn: {
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
   },
-  searchButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+  searchButtonText: { color: '#FFD700', fontSize: 16, fontWeight: '700', marginLeft: 8 },
   
   infoContainer: {
     flexDirection: 'row',
@@ -408,16 +408,16 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#1E0B3C', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', minHeight: '50%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#5A189A' },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFF' },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFD700' },
   
   searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', margin: 16, borderRadius: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: '#7B2CBF' },
-  modalSearchInput: { flex: 1, color: '#FFF', fontSize: 16, paddingVertical: 14, marginLeft: 10 },
+  modalSearchInput: { flex: 1, color: '#FFD700', fontSize: 16, paddingVertical: 14, marginLeft: 10 },
   
   cityItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#3C096C' },
   itemPressed: { backgroundColor: 'rgba(199,125,255,0.1)' },
   cityIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(199,125,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   cityDetails: { flex: 1, marginLeft: 14 },
-  cityName: { fontSize: 16, fontWeight: '600', color: '#FFF' },
+  cityName: { fontSize: 16, fontWeight: '600', color: '#FFD700' },
   cityCountry: { fontSize: 13, color: '#9D4EDD' },
 });
 

@@ -1,0 +1,810 @@
+Parfait ! Nano est ouvert.
+
+---
+
+## Maintenant, copiez CE TEXTE et collez-le dans nano :
+
+```
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+```
+
+---
+
+## Après avoir collé :
+
+1. Appuyez sur **Ctrl + O** (pour sauvegarder)
+2. Appuyez sur **Entrée** (pour confirmer)
+3. Appuyez sur **Ctrl + X** (pour quitter)
+
+**Dites "ok" quand c'est fait**Parfait ! Nano est ouvert.
+
+---
+
+## Maintenant, copiez CE TEXTE et collez-le dans nano :
+
+```
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+```
+
+---
+
+## Après avoir collé :
+
+1. Appuyez sur **Ctrl + O** (pour sauvegarder)
+2. Appuyez sur **Entrée** (pour confirmer)
+3. Appuyez sur **Ctrl + X** (pour quitter)
+
+**Dites "ok" quand c'est fait**Parfait ! Nano est ouvert.
+
+Maintenant, copiez CE TEXTE et collez-le dans nano :
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+Après avoir collé :
+Appuyez sur Ctrl + O (pour sauvegarder)
+Appuyez sur Entrée (pour confirmer)
+Appuyez sur Ctrl + X (pour quitter)
+Dites "ok" quand c'est fait
+
+May 7, 03:15 PM
+
+Rollback
+
+Agent is waiting...Parfait ! Nano est ouvert.
+
+Maintenant, copiez CE TEXTE et collez-le dans nano :
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+Après avoir collé :
+Appuyez sur Ctrl + O (pour sauvegarder)
+Appuyez sur Entrée (pour confirmer)
+Appuyez sur Ctrl + X (pour quitter)
+Dites "ok" quand c'est fait
+
+May 7, 03:15 PM
+
+Rollback
+
+Agent is waiting...Parfait ! Nano est ouvert.
+
+Maintenant, copiez CE TEXTE et collez-le dans nano :
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+Après avoir collé :
+Appuyez sur Ctrl + O (pour sauvegarder)
+Appuyez sur Entrée (pour confirmer)
+Appuyez sur Ctrl + X (pour quitter)
+Dites "ok" quand c'est fait
+
+May 7, 03:15 PM
+
+Rollback
+
+Agent is waiting...Parfait ! Nano est ouvert.
+
+---
+
+## Maintenant, copiez CE TEXTE et collez-le dans nano :
+
+```
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+```
+
+---
+
+## Après avoir collé :
+
+1. Appuyez sur **Ctrl + O** (pour sauvegarder)
+2. Appuyez sur **Entrée** (pour confirmer)
+3. Appuyez sur **Ctrl + X** (pour quitter)
+
+**Dites "ok" quand c'est fait**Parfait ! Nano est ouvert.
+
+---
+
+## Maintenant, copiez CE TEXTE et collez-le dans nano :
+
+```
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+```
+
+---
+
+## Après avoir collé :
+
+1. Appuyez sur **Ctrl + O** (pour sauvegarder)
+2. Appuyez sur **Entrée** (pour confirmer)
+3. Appuyez sur **Ctrl + X** (pour quitter)
+
+**Dites "ok" quand c'est fait**
+Maintenant, copiez CE TEXTE et collez-le dans nano :
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+Après avoir collé :
+Appuyez sur Ctrl + O (pour sauvegarder)
+Appuyez sur Entrée (pour confirmer)
+Appuyez sur Ctrl + X (pour quitter)
+Dites "ok" quand c'est fait
+
+May 7, 03:15 PM
+
+Rollback
+
+
+Agent is waiting...
+
+Maintenant, copiez CE TEXTE et collez-le dans nano :
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+Après avoir collé :
+Appuyez sur Ctrl + O (pour sauvegarder)
+Appuyez sur Entrée (pour confirmer)
+Appuyez sur Ctrl + X (pour quitter)
+Dites "ok" quand c'est fait
+
+May 7, 03:15 PM
+
+Rollback
+
+
+Agent is waiting...
+
+Maintenant, copiez CE TEXTE et collez-le dans nano :
+import { create } from 'zustand';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  isLoading: true,
+  isAuthenticated: false,
+  error: null,
+  clearError: () => set({ error: null }),
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userData = await AsyncStorage.getItem('user');
+      if (token && userData) {
+        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
+      } else {
+        set({ isLoading: false });
+      }
+    } catch (e) {
+      set({ isLoading: false });
+    }
+  },
+  login: async (email: string, password: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  register: async (email: string, password: string, name: string) => {
+    set({ isLoading: true, error: null });
+    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+    await AsyncStorage.setItem('token', res.data.token);
+    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+  },
+  logout: async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));
+Après avoir collé :
+Appuyez sur Ctrl + O (pour sauvegarder)
+Appuyez sur Entrée (pour confirmer)
+Appuyez sur Ctrl + X (pour quitter)
+Dites "ok" quand c'est fait
+
+May 7, 03:15 PM
+
+Rollback
+
+
+Agent is waiting...
+printf 'import { create } from '"'"'zustand'"'"';\nimport axios from '"'"'axios'"'"';\nimport AsyncStorage from '"'"'@react-native-async-storage/async-storage'"'"';\n\nconst BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;\n\nexport const useAuthStore = create((set) => ({\n  user: null,\n  token: null,\n  isLoading: true,\n  isAuthenticated: false,\n  error: null,\n  clearError: () => set({ error: null }),\n  checkAuth: async () => {\n    try {\n      const token = await AsyncStorage.getItem('"'"'token'"'"');\n      const userData = await AsyncStorage.getItem('"'"'user'"'"');\n      if (token && userData) {\n        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });\n      } else {\n        set({ isLoading: false });\n      }\n    } catch (e) {\n      set({ isLoading: false });\n    }\n  },\n  login: async (email, password) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/login'"'"', { email, password });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  register: async (email, password, name) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/register'"'"', { email, password, name });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  logout: async () => {\n    await AsyncStorage.removeItem('"'"'token'"'"');\n    await AsyncStorage.removeItem('"'"'user'"'"');\n    set({ user: null, token: null, isAuthenticated: false });\n  },\n}));\n' > ~/Cheap-flight/frontend/stores/authStore.tsprintf 'import { create } from '"'"'zustand'"'"';\nimport axios from '"'"'axios'"'"';\nimport AsyncStorage from '"'"'@react-native-async-storage/async-storage'"'"';\n\nconst BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;\n\nexport const useAuthStore = create((set) => ({\n  user: null,\n  token: null,\n  isLoading: true,\n  isAuthenticated: false,\n  error: null,\n  clearError: () => set({ error: null }),\n  checkAuth: async () => {\n    try {\n      const token = await AsyncStorage.getItem('"'"'token'"'"');\n      const userData = await AsyncStorage.getItem('"'"'user'"'"');\n      if (token && userData) {\n        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });\n      } else {\n        set({ isLoading: false });\n      }\n    } catch (e) {\n      set({ isLoading: false });\n    }\n  },\n  login: async (email, password) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/login'"'"', { email, password });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  register: async (email, password, name) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/register'"'"', { email, password, name });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  logout: async () => {\n    await AsyncStorage.removeItem('"'"'token'"'"');\n    await AsyncStorage.removeItem('"'"'user'"'"');\n    set({ user: null, token: null, isAuthenticated: false });\n  },\n}));\n' > ~/Cheap-flight/frontend/stores/authStore.tsprintf 'import { create } from '"'"'zustand'"'"';\nimport axios from '"'"'axios'"'"';\nimport AsyncStorage from '"'"'@react-native-async-storage/async-storage'"'"';\n\nconst BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;\n\nexport const useAuthStore = create((set) => ({\n  user: null,\n  token: null,\n  isLoading: true,\n  isAuthenticated: false,\n  error: null,\n  clearError: () => set({ error: null }),\n  checkAuth: async () => {\n    try {\n      const token = await AsyncStorage.getItem('"'"'token'"'"');\n      const userData = await AsyncStorage.getItem('"'"'user'"'"');\n      if (token && userData) {\n        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });\n      } else {\n        set({ isLoading: false });\n      }\n    } catch (e) {\n      set({ isLoading: false });\n    }\n  },\n  login: async (email, password) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/login'"'"', { email, password });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  register: async (email, password, name) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/register'"'"', { email, password, name });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  logout: async () => {\n    await AsyncStorage.removeItem('"'"'token'"'"');\n    await AsyncStorage.removeItem('"'"'user'"'"');\n    set({ user: null, token: null, isAuthenticated: false });\n  },\n}));\n' > ~/Cheap-flight/frontend/stores/authStore.tsprintf 'import { create } from '"'"'zustand'"'"';\nimport axios from '"'"'axios'"'"';\nimport AsyncStorage from '"'"'@react-native-async-storage/async-storage'"'"';\n\nconst BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;\n\nexport const useAuthStore = create((set) => ({\n  user: null,\n  token: null,\n  isLoading: true,\n  isAuthenticated: false,\n  error: null,\n  clearError: () => set({ error: null }),\n  checkAuth: async () => {\n    try {\n      const token = await AsyncStorage.getItem('"'"'token'"'"');\n      const userData = await AsyncStorage.getItem('"'"'user'"'"');\n      if (token && userData) {\n        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });\n      } else {\n        set({ isLoading: false });\n      }\n    } catch (e) {\n      set({ isLoading: false });\n    }\n  },\n  login: async (email, password) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/login'"'"', { email, password });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  register: async (email, password, name) => {\n    set({ isLoading: true, error: null });\n    const res = await axios.post(BACKEND_URL + '"'"'/api/auth/register'"'"', { email, password, name });\n    await AsyncStorage.setItem('"'"'token'"'"', res.data.token);\n    await AsyncStorage.setItem('"'"'user'"'"', JSON.stringify(res.data.user));\n    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });\n  },\n  logout: async () => {\n    await AsyncStorage.removeItem('"'"'token'"'"');\n    await AsyncStorage.removeItem('"'"'user'"'"');\n    set({ user: null, token: null, isAuthenticated: false });\n  },\n}));\n' > ~/Cheap-flight/frontend/stores/authStore.ts

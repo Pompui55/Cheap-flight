@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFD700',
     marginLeft: 10,
   },
   addButton: {
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   loginButtonText: {
-    color: '#FFF',
+    color: '#FFD700',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   createButtonText: {
-    color: '#FFF',
+    color: '#FFD700',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   routeText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFD700',
     marginBottom: 8,
   },
 
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    color: '#E0AAFF',
+    color: '#FFD700',
     fontWeight: '600',
   },
 
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 14,
-    color: '#E0AAFF',
+    color: '#FFD700',
     marginLeft: 8,
   },
   priceValue: {
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#FFD700',
   },
 
   inputContainer: {
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: '#FFF',
+    color: '#FFD700',
     fontSize: 16,
     paddingVertical: 14,
     marginLeft: 12,
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   submitButtonText: {
-    color: '#FFF',
+    color: '#FFD700',
     fontSize: 16,
     fontWeight: '700',
     marginLeft: 8,
