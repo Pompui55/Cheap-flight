@@ -514,7 +514,18 @@ export default function SearchScreen() {
       Alert.alert('Erreur', 'Le départ et la destination doivent être différents');
       return;
     }
+    if (!departureDate) {
+      Alert.alert('Erreur', 'Veuillez sélectionner une date de départ');
+      return;
+    }
 
+    // Aller directement sur Aviasales
+    const formattedDate = departureDate.slice(8, 10) + departureDate.slice(5, 7);
+    const aviasalesUrl = `https://www.aviasales.com/search/${origin}${formattedDate}${destination}1?marker=515b05&currency=EUR`;
+    Linking.openURL(aviasalesUrl);
+    return;
+
+    // Code original commenté
     setLoading(true);
     setSearched(false);
     
@@ -561,7 +572,7 @@ export default function SearchScreen() {
   };
 
 const handleBook = (flight: Flight) => {
-    const formattedDate = departureDate.replace(/-/g, "");
+    const formattedDate = departureDate.slice(8, 10) + departureDate.slice(5, 7);
     const aviasalesUrl = `https://www.aviasales.com/search/${flight.origin}${formattedDate}${flight.destination}1?marker=515b05`;
     
     Linking.openURL(aviasalesUrl).catch(() => 

@@ -7,7 +7,7 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 export const useAuthStore = create((set) => ({
   user: null,
   token: null,
-  isLoading: true,
+  isLoading: false,
   isAuthenticated: false,
   error: null,
   clearError: () => set({ error: null }),
@@ -16,27 +16,35 @@ export const useAuthStore = create((set) => ({
       const token = await AsyncStorage.getItem('token');
       const userData = await AsyncStorage.getItem('user');
       if (token && userData) {
-        set({ user: JSON.parse(userData), token, isAuthenticated: true, isLoading: false });
-      } else {
-        set({ isLoading: false });
+        set({ user: JSON.parse(userData), token, isAuthenticated: true });
       }
     } catch (e) {
-      set({ isLoading: false });
+      console.log(e);
     }
   },
   login: async (email, password) => {
-    set({ isLoading: true, error: null });
-    const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
-    await AsyncStorage.setItem('token', res.data.token);
-    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
-    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+    try {
+      set({ isLoading: true, error: null });
+      const res = await axios.post(BACKEND_URL + '/api/auth/login', { email, password });
+      await AsyncStorage.setItem('token', res.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+      set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+    } catch (e) {
+      set({ isLoading: false, error: e.response?.data?.detail || 'Erreur de connexion' });
+      throw e;
+    }
   },
   register: async (email, password, name) => {
-    set({ isLoading: true, error: null });
-    const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
-    await AsyncStorage.setItem('token', res.data.token);
-    await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
-    set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+    try {
+      set({ isLoading: true, error: null });
+      const res = await axios.post(BACKEND_URL + '/api/auth/register', { email, password, name });
+      await AsyncStorage.setItem('token', res.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+      set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
+    } catch (e) {
+      set({ isLoading: false, error: e.response?.data?.detail || 'Erreur d'\'inscription' });
+      throw e;
+    }
   },
   logout: async () => {
     await AsyncStorage.removeItem('token');

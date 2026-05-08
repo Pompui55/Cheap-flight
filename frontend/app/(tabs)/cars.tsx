@@ -73,7 +73,7 @@ export default function CarsScreen() {
       Alert.alert('Erreur', 'Veuillez sélectionner les dates');
       return;
     }
-    const url = `https://www.rentalcars.com/search-results?location=${encodeURIComponent(city)}&pickupDate=${pickupDate}&dropoffDate=${returnDate}&affiliateCode=515b05`;
+    const url = `https://www.rentalcars.com/search-results?location=${encodeURIComponent(city)}&pickupDate=${pickupDate}&pickupTime=10:00&dropoffDate=${returnDate}&dropoffTime=10:00&affiliateCode=515b05`;
     Linking.openURL(url);
   };
 

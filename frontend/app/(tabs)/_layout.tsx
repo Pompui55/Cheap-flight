@@ -11,8 +11,8 @@ export default function TabLayout() {
           backgroundColor: '#1E0B3C',
           borderTopColor: '#5A189A',
           borderTopWidth: 0,      // On enlève la bordure pour un look plus moderne
-          height: 95,             // On augmente la hauteur totale
-          paddingBottom: 35,      // ON REMONTE LES ICÔNES (C'est le plus important !)
+          height: 115,             // On augmente la hauteur totale
+          paddingBottom: 50,      // ON REMONTE LES ICÔNES (C'est le plus important !)
           paddingTop: 10,         // On donne un peu d'espace en haut
         },
         tabBarActiveTintColor: '#FFD700',
