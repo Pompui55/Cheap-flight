@@ -42,7 +42,7 @@ export const useAuthStore = create((set) => ({
       await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
       set({ user: res.data.user, token: res.data.token, isAuthenticated: true, isLoading: false });
     } catch (e) {
-      set({ isLoading: false, error: e.response?.data?.detail || 'Erreur d'\'inscription' });
+      set({ isLoading: false, error: e.response?.data?.detail || "Erreur inscription" });
       throw e;
     }
   },
