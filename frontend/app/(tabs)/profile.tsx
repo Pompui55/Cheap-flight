@@ -12,7 +12,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
-import * as Linking from 'expo-linking';
 import { Alert } from 'react-native';
 
 export default function ProfileScreen() {
