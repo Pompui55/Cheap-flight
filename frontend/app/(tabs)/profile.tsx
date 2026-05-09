@@ -11,6 +11,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../stores/authStore';
 import { useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
+import * as Linking from 'expo-linking';
+import { Alert } from 'react-native';
 
 export default function ProfileScreen() {
   const { user, logout, isAuthenticated } = useAuthStore();
@@ -85,7 +88,7 @@ export default function ProfileScreen() {
           <View style={styles.menuSection}>
             <Text style={styles.sectionTitle}>Settings</Text>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert("Profil", "Fonctionnalité bientôt disponible")}>
               <LinearGradient
                 colors={['#240046', '#3C096C']}
                 style={styles.menuItemGradient}
@@ -98,7 +101,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert("Notifications", "Fonctionnalité bientôt disponible")}>
               <LinearGradient
                 colors={['#240046', '#3C096C']}
                 style={styles.menuItemGradient}
@@ -111,7 +114,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert("Paiement", "Non requis - App gratuite")}>
               <LinearGradient
                 colors={['#240046', '#3C096C']}
                 style={styles.menuItemGradient}
@@ -124,7 +127,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert("Langue", "Français par défaut")}>
               <LinearGradient
                 colors={['#240046', '#3C096C']}
                 style={styles.menuItemGradient}
@@ -145,7 +148,7 @@ export default function ProfileScreen() {
           <View style={styles.menuSection}>
             <Text style={styles.sectionTitle}>Support</Text>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("mailto:support@cheapflight.app?subject=Aide")}>
               <LinearGradient
                 colors={['#240046', '#3C096C']}
                 style={styles.menuItemGradient}
@@ -158,7 +161,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://www.aviasales.com/terms")}>
               <LinearGradient
                 colors={['#240046', '#3C096C']}
                 style={styles.menuItemGradient}
@@ -171,7 +174,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://www.aviasales.com/privacy")}>
               <LinearGradient
                 colors={['#240046', '#3C096C']}
                 style={styles.menuItemGradient}

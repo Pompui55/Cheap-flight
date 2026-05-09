@@ -52,6 +52,57 @@ const CITIES = [
   { name: "Sydney", country: "Australie" },
   { name: "Le Cap", country: "Afrique du Sud" },
   { name: "Maurice", country: "Île Maurice" },
+  // AFRIQUE SUBSAHARIENNE
+  { name: "Antananarivo", country: "Madagascar" },
+  { name: "Dakar", country: "Sénégal" },
+  { name: "Abidjan", country: "Côte d'Ivoire" },
+  { name: "Accra", country: "Ghana" },
+  { name: "Lagos", country: "Nigeria" },
+  { name: "Nairobi", country: "Kenya" },
+  { name: "Mombasa", country: "Kenya" },
+  { name: "Dar es Salaam", country: "Tanzanie" },
+  { name: "Zanzibar", country: "Tanzanie" },
+  { name: "Kigali", country: "Rwanda" },
+  { name: "Addis-Abeba", country: "Éthiopie" },
+  { name: "Johannesburg", country: "Afrique du Sud" },
+  { name: "Windhoek", country: "Namibie" },
+  { name: "Maputo", country: "Mozambique" },
+  { name: "Seychelles", country: "Seychelles" },
+  // ASIE COMPLÉMENTAIRE
+  { name: "Maldives", country: "Maldives" },
+  { name: "Colombo", country: "Sri Lanka" },
+  { name: "Katmandou", country: "Népal" },
+  { name: "Phnom Penh", country: "Cambodge" },
+  { name: "Hanoï", country: "Vietnam" },
+  { name: "Ho Chi Minh", country: "Vietnam" },
+  { name: "Kuala Lumpur", country: "Malaisie" },
+  { name: "Jakarta", country: "Indonésie" },
+  { name: "Manille", country: "Philippines" },
+  { name: "Taipei", country: "Taïwan" },
+  { name: "Séoul", country: "Corée du Sud" },
+  { name: "Pékin", country: "Chine" },
+  { name: "Shanghai", country: "Chine" },
+  { name: "Hong Kong", country: "Hong Kong" },
+  // MOYEN-ORIENT
+  { name: "Mascate", country: "Oman" },
+  { name: "Doha", country: "Qatar" },
+  { name: "Abu Dhabi", country: "Émirats" },
+  { name: "Tel Aviv", country: "Israël" },
+  { name: "Amman", country: "Jordanie" },
+  // AMÉRIQUES
+  { name: "Toronto", country: "Canada" },
+  { name: "Montréal", country: "Canada" },
+  { name: "Vancouver", country: "Canada" },
+  { name: "Santiago", country: "Chili" },
+  { name: "Buenos Aires", country: "Argentine" },
+  { name: "Lima", country: "Pérou" },
+  { name: "Bogota", country: "Colombie" },
+  { name: "Panama", country: "Panama" },
+  { name: "San José", country: "Costa Rica" },
+  // OCÉANIE
+  { name: "Melbourne", country: "Australie" },
+  { name: "Auckland", country: "Nouvelle-Zélande" },
+  { name: "Fiji", country: "Fidji" },
 ];
 
 export default function CarsScreen() {
@@ -73,7 +124,7 @@ export default function CarsScreen() {
       Alert.alert('Erreur', 'Veuillez sélectionner les dates');
       return;
     }
-    const url = `https://www.rentalcars.com/search-results?location=${encodeURIComponent(city)}&pickupDate=${pickupDate}&pickupTime=10:00&dropoffDate=${returnDate}&dropoffTime=10:00&affiliateCode=515b05`;
+    const url = `https://www.rentalcars.com/?affiliateCode=515b05&adplat=affpr&preflang=fr&prefcurrency=EUR`;
     Linking.openURL(url);
   };
 
