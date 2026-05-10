@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.pompui.cheapflightfinal",
-      "versionCode": 21,
+      "versionCode": 22,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0118"
