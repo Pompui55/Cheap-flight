@@ -124,7 +124,7 @@ export default function CarsScreen() {
       Alert.alert('Erreur', 'Veuillez sélectionner les dates');
       return;
     }
-    const url = `https://www.rentalcars.com/search?searchTerm=${encodeURIComponent(city)}&driversAge=30&affiliateCode=515b05&preflang=fr&prefcurrency=EUR`;
+    const url = `https://www.rentalcars.com/fr/?affiliateCode=515b05&adplat=affpr&preflang=fr&prefcurrency=EUR&location=${encodeURIComponent(city)}`;
     Linking.openURL(url);
   };
 

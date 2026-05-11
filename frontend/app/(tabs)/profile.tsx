@@ -16,35 +16,56 @@ import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const LANGUAGES = [
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-  { code: 'pt', name: 'Português', flag: '🇵🇹' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'fr' as const, name: 'Français', flag: '🇫🇷' },
+  { code: 'en' as const, name: 'English', flag: '🇬🇧' },
 ];
 
 export default function ProfileScreen() {
   const { user, logout, isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0]);
+
+  const selectedLanguage = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      try {
+        const savedImage = await AsyncStorage.getItem('profileImage');
+        if (savedImage) setProfileImage(savedImage);
+      } catch (e) {
+        console.log('Error loading image');
+      }
+    };
+    loadProfileImage();
+  }, []);
+
+  useEffect(() => {
+    const saveProfileImage = async () => {
+      try {
+        if (profileImage) {
+          await AsyncStorage.setItem('profileImage', profileImage);
+        }
+      } catch (e) {
+        console.log('Error saving image');
+      }
+    };
+    if (profileImage) saveProfileImage();
+  }, [profileImage]);
 
   if (!isAuthenticated) {
     return (
       <LinearGradient colors={['#0A0118', '#1E0B3C']} style={{flex:1,justifyContent:'center',alignItems:'center'}}>
         <Ionicons name="person-circle" size={100} color="#FFD700" />
-        <Text style={{color:'#FFD700',fontSize:24,marginTop:20,fontWeight:'bold'}}>Connectez-vous</Text>
+        <Text style={{color:'#FFD700',fontSize:24,marginTop:20,fontWeight:'bold'}}>{t('login')}</Text>
         <TouchableOpacity onPress={() => router.push('/auth')} style={{marginTop:30,backgroundColor:'#FFD700',paddingHorizontal:40,paddingVertical:15,borderRadius:12}}>
-          <Text style={{color:'#0A0118',fontSize:18,fontWeight:'bold'}}>Se connecter</Text>
+          <Text style={{color:'#0A0118',fontSize:18,fontWeight:'bold'}}>{t('login')}</Text>
         </TouchableOpacity>
       </LinearGradient>
     );
@@ -58,7 +79,7 @@ export default function ProfileScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour accéder à vos photos.');
+      Alert.alert(t('error'), 'Permission required');
       return;
     }
 
@@ -75,22 +96,17 @@ export default function ProfileScreen() {
   };
 
   const selectLanguage = (lang: typeof LANGUAGES[0]) => {
-    setSelectedLanguage(lang);
+    setLanguage(lang.code);
     setShowLanguageModal(false);
-    Alert.alert('Langue', `${lang.flag} ${lang.name} sélectionné\n\nTraduction bientôt disponible`);
   };
 
   return (
     <LinearGradient colors={['#0A0118', '#1E0B3C']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView style={styles.scrollView}>
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.profileImageContainer} onPress={pickImage}>
-              <LinearGradient
-                colors={['#7B2CBF', '#C77DFF']}
-                style={styles.profileImageGradient}
-              >
+              <LinearGradient colors={['#7B2CBF', '#C77DFF']} style={styles.profileImageGradient}>
                 {profileImage || user?.picture ? (
                   <Image source={{ uri: profileImage || user?.picture }} style={styles.profileImage} />
                 ) : (
@@ -105,70 +121,56 @@ export default function ProfileScreen() {
             <Text style={styles.userEmail}>{user?.email || ''}</Text>
           </View>
 
-          {/* Stats Card */}
           <View style={styles.statsCard}>
-            <LinearGradient
-              colors={['#5A189A', '#3C096C']}
-              style={styles.statsGradient}
-            >
+            <LinearGradient colors={['#5A189A', '#3C096C']} style={styles.statsGradient}>
               <View style={styles.statItem}>
                 <Ionicons name="search" size={32} color="#C77DFF" />
                 <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>Recherches</Text>
+                <Text style={styles.statLabel}>{t('search')}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Ionicons name="heart" size={32} color="#C77DFF" />
                 <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>Favoris</Text>
+                <Text style={styles.statLabel}>{t('favorites')}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Ionicons name="notifications" size={32} color="#C77DFF" />
                 <Text style={styles.statValue}>0</Text>
-                <Text style={styles.statLabel}>Alertes</Text>
+                <Text style={styles.statLabel}>{t('alerts')}</Text>
               </View>
             </LinearGradient>
           </View>
 
-          {/* Menu Items */}
           <View style={styles.menuSection}>
-            <Text style={styles.sectionTitle}>Paramètres</Text>
+            <Text style={styles.sectionTitle}>{t('settings')}</Text>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert("Profil", "Fonctionnalité bientôt disponible")}>
-              <LinearGradient
-                colors={['#240046', '#3C096C']}
-                style={styles.menuItemGradient}
-              >
+            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert(t('profile'), t('comingSoon'))}>
+              <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="person-circle" size={24} color="#C77DFF" />
-                  <Text style={styles.menuItemText}>Modifier le profil</Text>
+                  <Text style={styles.menuItemText}>{t('editProfile')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#9D4EDD" />
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert("Historique", "Fonctionnalité bientôt disponible")}>
-              <LinearGradient
-                colors={['#240046', '#3C096C']}
-                style={styles.menuItemGradient}
-              >
+            <TouchableOpacity style={styles.menuItem} onPress={() => Alert.alert(t('history'), t('comingSoon'))}>
+              <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="time" size={24} color="#C77DFF" />
-                  <Text style={styles.menuItemText}>Historique</Text>
+                  <Text style={styles.menuItemText}>{t('history')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#9D4EDD" />
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => setShowLanguageModal(true)}>
-              <LinearGradient
-                colors={['#240046', '#3C096C']}
-                style={styles.menuItemGradient}
-              >
+              <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="globe" size={24} color="#C77DFF" />
-                  <Text style={styles.menuItemText}>Langue</Text>
+                  <Text style={styles.menuItemText}>{t('language')}</Text>
                 </View>
                 <View style={styles.menuItemRight}>
                   <Text style={styles.menuItemValue}>{selectedLanguage.flag} {selectedLanguage.name}</Text>
@@ -178,73 +180,56 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Support Section */}
           <View style={styles.menuSection}>
-            <Text style={styles.sectionTitle}>Support</Text>
+            <Text style={styles.sectionTitle}>{t('support')}</Text>
 
             <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("mailto:music.music60music@gmail.com?subject=Support Cheap Flight")}>
-              <LinearGradient
-                colors={['#240046', '#3C096C']}
-                style={styles.menuItemGradient}
-              >
+              <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="help-circle" size={24} color="#C77DFF" />
-                  <Text style={styles.menuItemText}>Centre d'aide</Text>
+                  <Text style={styles.menuItemText}>{t('helpCenter')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#9D4EDD" />
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://www.travelpayouts.com/terms")}>
-              <LinearGradient
-                colors={['#240046', '#3C096C']}
-                style={styles.menuItemGradient}
-              >
+            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://support.travelpayouts.com/hc/en-us/articles/360003998960")}>
+              <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="document-text" size={24} color="#C77DFF" />
-                  <Text style={styles.menuItemText}>Conditions d'utilisation</Text>
+                  <Text style={styles.menuItemText}>{t('termsConditions')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#9D4EDD" />
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://www.travelpayouts.com/privacy")}>
-              <LinearGradient
-                colors={['#240046', '#3C096C']}
-                style={styles.menuItemGradient}
-              >
+            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://support.travelpayouts.com/hc/en-us/articles/360003999000")}>
+              <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="shield-checkmark" size={24} color="#C77DFF" />
-                  <Text style={styles.menuItemText}>Politique de confidentialité</Text>
+                  <Text style={styles.menuItemText}>{t('privacyPolicy')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#9D4EDD" />
               </LinearGradient>
             </TouchableOpacity>
           </View>
 
-          {/* Logout Button */}
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <LinearGradient
-              colors={['#7B2CBF', '#5A189A']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.logoutGradient}
-            >
+            <LinearGradient colors={['#7B2CBF', '#5A189A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoutGradient}>
               <Ionicons name="log-out" size={24} color="#FFF" />
-              <Text style={styles.logoutText}>Déconnexion</Text>
+              <Text style={styles.logoutText}>{t('logout')}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <Text style={styles.version}>CHEAP FLIGHT v2.1.0</Text>
+          <Text style={styles.version}>CHEAP FLIGHT v2.3.0</Text>
         </ScrollView>
       </SafeAreaView>
 
-      {/* Language Modal */}
       <Modal visible={showLanguageModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Choisir une langue</Text>
+              <Text style={styles.modalTitle}>{t('language')}</Text>
               <Pressable onPress={() => setShowLanguageModal(false)} hitSlop={20}>
                 <Ionicons name="close" size={28} color="#FFF" />
               </Pressable>
@@ -258,7 +243,7 @@ export default function ProfileScreen() {
                 >
                   <Text style={styles.langFlag}>{lang.flag}</Text>
                   <Text style={styles.langName}>{lang.name}</Text>
-                  {selectedLanguage.code === lang.code && (
+                  {language === lang.code && (
                     <Ionicons name="checkmark-circle" size={24} color="#C77DFF" />
                   )}
                 </Pressable>
@@ -277,32 +262,9 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   header: { alignItems: 'center', padding: 32 },
   profileImageContainer: { marginBottom: 16 },
-  profileImageGradient: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#C77DFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 10,
-  },
+  profileImageGradient: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', shadowColor: '#C77DFF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 20, elevation: 10 },
   profileImage: { width: 120, height: 120, borderRadius: 60 },
-  cameraIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#7B2CBF',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#1E0B3C',
-  },
+  cameraIcon: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#7B2CBF', width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#1E0B3C' },
   userName: { fontSize: 24, fontWeight: 'bold', color: '#FFD700', marginBottom: 4 },
   userEmail: { fontSize: 14, color: '#9D4EDD' },
   statsCard: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: 'hidden' },
@@ -323,9 +285,8 @@ const styles = StyleSheet.create({
   logoutGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16 },
   logoutText: { fontSize: 16, fontWeight: '600', color: '#FFD700', marginLeft: 8 },
   version: { textAlign: 'center', fontSize: 12, color: '#5A189A', marginBottom: 32 },
-  // Modal styles
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#1E0B3C', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '70%' },
+  modalContent: { backgroundColor: '#1E0B3C', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '50%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#5A189A' },
   modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFD700' },
   langItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#3C096C' },
