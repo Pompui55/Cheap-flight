@@ -193,7 +193,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://support.travelpayouts.com/hc/en-us/articles/360003998960")}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://www.aviasales.com/terms_of_use")}>
               <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="document-text" size={24} color="#C77DFF" />
@@ -203,7 +203,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://support.travelpayouts.com/hc/en-us/articles/360003999000")}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => Linking.openURL("https://www.aviasales.com/privacy")}>
               <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
                 <View style={styles.menuItemLeft}>
                   <Ionicons name="shield-checkmark" size={24} color="#C77DFF" />
