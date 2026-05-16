@@ -520,8 +520,18 @@ export default function SearchScreen() {
     }
 
     // Aller directement sur Aviasales
-    const formattedDate = departureDate.slice(8, 10) + departureDate.slice(5, 7);
-    const aviasalesUrl = `https://www.aviasales.com/search/${origin}${formattedDate}${destination}1?marker=515b05&currency=EUR`;
+    const formattedDeparture = departureDate.slice(8, 10) + departureDate.slice(5, 7);
+    let aviasalesUrl = '';
+    
+    if (returnDate) {
+      // Aller-retour
+      const formattedReturn = returnDate.slice(8, 10) + returnDate.slice(5, 7);
+      aviasalesUrl = `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}${formattedReturn}1?marker=515b05&currency=EUR`;
+    } else {
+      // Aller simple
+      aviasalesUrl = `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}1?marker=515b05&currency=EUR`;
+    }
+    
     Linking.openURL(aviasalesUrl);
     return;
 

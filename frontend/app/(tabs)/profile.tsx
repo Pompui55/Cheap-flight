@@ -166,18 +166,7 @@ export default function ProfileScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => setShowLanguageModal(true)}>
-              <LinearGradient colors={['#240046', '#3C096C']} style={styles.menuItemGradient}>
-                <View style={styles.menuItemLeft}>
-                  <Ionicons name="globe" size={24} color="#C77DFF" />
-                  <Text style={styles.menuItemText}>{t('language')}</Text>
-                </View>
-                <View style={styles.menuItemRight}>
-                  <Text style={styles.menuItemValue}>{selectedLanguage.flag} {selectedLanguage.name}</Text>
-                  <Ionicons name="chevron-forward" size={24} color="#9D4EDD" />
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+            { /* Langue désactivée pour le moment */ }
           </View>
 
           <View style={styles.menuSection}>
