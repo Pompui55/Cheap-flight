@@ -124,7 +124,8 @@ export default function CarsScreen() {
       Alert.alert('Erreur', 'Veuillez sélectionner les dates');
       return;
     }
-    const url = `https://www.rentalcars.com/fr/?affiliateCode=515b05&adplat=affpr&preflang=fr&prefcurrency=EUR&location=${encodeURIComponent(city)}`;
+    // Kayak avec ville et dates
+    const url = `https://www.kayak.fr/cars/${encodeURIComponent(city)}/${pickupDate}/${returnDate}?sort=price_a`;
     Linking.openURL(url);
   };
 
