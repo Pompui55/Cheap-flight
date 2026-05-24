@@ -124,8 +124,10 @@ export default function CarsScreen() {
       Alert.alert('Erreur', 'Veuillez sélectionner les dates');
       return;
     }
-    // Kayak avec ville et dates
-    const url = `https://www.kayak.fr/cars/${encodeURIComponent(city)}/${pickupDate}/${returnDate}?sort=price_a`;
+    // Kayak format correct
+    const pickupFormatted = pickupDate + "-10h00";
+    const returnFormatted = returnDate + "-10h00";
+    const url = `https://www.kayak.fr/cars/${city},France/${pickupFormatted}/${returnFormatted}?sort=price_a`;
     Linking.openURL(url);
   };
 
