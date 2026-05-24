@@ -124,10 +124,8 @@ export default function CarsScreen() {
       Alert.alert('Erreur', 'Veuillez sélectionner les dates');
       return;
     }
-    // Kayak format correct
-    const pickupFormatted = pickupDate + "-10h00";
-    const returnFormatted = returnDate + "-10h00";
-    const url = `https://www.kayak.fr/cars/${city},France/${pickupFormatted}/${returnFormatted}?sort=price_a`;
+    // DiscoverCars via Travelpayouts (affiliate 515b05)
+    const url = `https://www.discovercars.com/?location=${encodeURIComponent(city)}&pickup_date=${pickupDate}&dropoff_date=${returnDate}&marker=515b05`;
     Linking.openURL(url);
   };
 
