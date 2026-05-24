@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cheap Flight",
     "slug": "cheap-flight",
-    "version": "1.0.29",
+    "version": "1.0.30",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cheap-flight",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.pompui.cheapflightfinal",
-      "versionCode": 29,
+      "versionCode": 30,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0118"
@@ -34,7 +34,8 @@
         "INTERNET",
         "ACCESS_NETWORK_STATE",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "com.google.android.gms.permission.AD_ID"
       ],
       "edgeToEdgeEnabled": true
     },
@@ -54,7 +55,22 @@
           "backgroundColor": "#0A0118"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-8164267941739401~6473896274"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 34
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -64,5 +80,8 @@
         "projectId": "7b5c3c9b-db28-496a-a9b6-2f221e26ab1e"
       }
     }
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-8164267941739401~6473896274"
   }
 }

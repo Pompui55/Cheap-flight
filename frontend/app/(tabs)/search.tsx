@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
+import { AdBanner } from '../../src/components/AdBanner';
 
 // Backend URL
 const BACKEND_URL = 'https://cheap-flights-144.preview.emergentagent.com';
@@ -858,6 +859,10 @@ const handleBook = (flight: Flight) => {
           )}
 
         </ScrollView>
+        
+        {/* Bannière publicitaire AdMob */}
+        <AdBanner />
+        
       </SafeAreaView>
 
       {/* Origin Modal */}
