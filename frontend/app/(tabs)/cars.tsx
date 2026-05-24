@@ -119,14 +119,33 @@ export default function CarsScreen() {
     c.country.toLowerCase().includes(citySearch.toLowerCase())
   );
 
-  const searchCars = () => {
+  const searchCars = async () => {
     if (!pickupDate || !returnDate) {
       Alert.alert('Erreur', 'Veuillez sélectionner les dates');
       return;
     }
-    // DiscoverCars via Travelpayouts (affiliate 515b05)
-    const url = `https://www.discovercars.com/?location=${encodeURIComponent(city)}&pickup_date=${pickupDate}&dropoff_date=${returnDate}&marker=515b05`;
-    Linking.openURL(url);
+    
+    // Format city for URL (remove accents, lowercase, replace spaces)
+    const formatCity = (name: string) => {
+      return name
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/\s+/g, '-');
+    };
+    
+    const citySlug = formatCity(city);
+    
+    // Kayak car rental URL with dates
+    // Format: /cars/CityName/YYYY-MM-DD/YYYY-MM-DD
+    const url = `https://www.kayak.fr/cars/${citySlug}/${pickupDate}/${returnDate}?sort=price_a`;
+    
+    // Force open in browser (not Kayak app)
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert('Erreur', 'Impossible d\'ouvrir le lien');
+    }
   };
 
   return (
