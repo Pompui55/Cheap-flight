@@ -128,7 +128,8 @@ export default function CarsScreen() {
     // Format city for URL (remove accents, lowercase, replace spaces)
     const formatCity = (name: string) => {
       return name
-        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
         .replace(/\s+/g, '-');
     };
@@ -136,15 +137,16 @@ export default function CarsScreen() {
     const citySlug = formatCity(city);
     
     // Kayak car rental URL with dates
-    // Format: /cars/CityName/YYYY-MM-DD/YYYY-MM-DD
     const url = `https://www.kayak.fr/cars/${citySlug}/${pickupDate}/${returnDate}?sort=price_a`;
     
-    // Force open in browser (not Kayak app)
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
+    console.log('Opening URL:', url);
+    
+    // Open directly in browser - don't use canOpenURL (unreliable on Android)
+    try {
       await Linking.openURL(url);
-    } else {
-      Alert.alert('Erreur', 'Impossible d\'ouvrir le lien');
+    } catch (error) {
+      console.error('Error opening URL:', error);
+      Alert.alert('Erreur', 'Impossible d\'ouvrir le navigateur. Veuillez réessayer.');
     }
   };
 
