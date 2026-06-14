@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Pressable, SafeAreaView, FlatList, Alert, TextI
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
-import notificationService from '../src/services/notifications';
+import notificationService from '../../src/services/notifications';
 
 export default function AlertsScreen() {
   const [alerts, setAlerts] = useState([]);
