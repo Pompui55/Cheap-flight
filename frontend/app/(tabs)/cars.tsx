@@ -125,23 +125,28 @@ export default function CarsScreen() {
       return;
     }
     
-    // Format city for URL (remove accents, lowercase, replace spaces)
-    const formatCity = (name: string) => {
+    // Kayak uses encoded city names with the pickup/dropoff times
+    // Format: https://www.kayak.fr/cars/CityName/YYYY-MM-DD-10h00/YYYY-MM-DD-10h00
+    const formatCityForKayak = (name: string) => {
+      // Remove accents and encode for URL
       return name
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
         .replace(/\s+/g, '-');
     };
     
-    const citySlug = formatCity(city);
+    const cityForUrl = formatCityForKayak(city);
     
-    // Kayak car rental URL with dates
-    const url = `https://www.kayak.fr/cars/${citySlug}/${pickupDate}/${returnDate}?sort=price_a`;
+    // Add default pickup time (10:00) and return time (10:00)
+    const pickupWithTime = `${pickupDate}-10h00`;
+    const returnWithTime = `${returnDate}-10h00`;
     
-    console.log('Opening URL:', url);
+    // Kayak car rental URL with city, dates and times
+    const url = `https://www.kayak.fr/cars/${cityForUrl}/${pickupWithTime}/${returnWithTime}?sort=price_a`;
     
-    // Open directly in browser - don't use canOpenURL (unreliable on Android)
+    console.log('Opening Kayak URL:', url);
+    
+    // Open in browser
     try {
       await Linking.openURL(url);
     } catch (error) {

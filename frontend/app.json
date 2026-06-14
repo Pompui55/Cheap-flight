@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cheap Flight",
     "slug": "cheap-flight",
-    "version": "1.0.35",
+    "version": "1.0.36",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cheap-flight",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.pompui.cheapflightfinal",
-      "versionCode": 35,
+      "versionCode": 36,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0118"
@@ -35,7 +35,10 @@
         "ACCESS_NETWORK_STATE",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "com.google.android.gms.permission.AD_ID"
+        "com.google.android.gms.permission.AD_ID",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK"
       ],
       "edgeToEdgeEnabled": true
     },
@@ -69,6 +72,14 @@
             "compileSdkVersion": 35,
             "targetSdkVersion": 35
           }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#7B2CBF",
+          "sounds": []
         }
       ]
     ],
