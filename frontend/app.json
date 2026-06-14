@@ -2,7 +2,7 @@
   "expo": {
     "name": "Cheap Flight",
     "slug": "cheap-flight",
-    "version": "1.0.36",
+    "version": "1.0.37",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cheap-flight",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.pompui.cheapflightfinal",
-      "versionCode": 36,
+      "versionCode": 37,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0118"
@@ -74,14 +74,7 @@
           }
         }
       ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#7B2CBF",
-          "sounds": []
-        }
-      ]
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true
