@@ -121,37 +121,17 @@ export default function CarsScreen() {
 
   const searchCars = async () => {
     if (!pickupDate || !returnDate) {
-      Alert.alert('Erreur', 'Veuillez sélectionner les dates');
+      Alert.alert('Erreur', 'Veuillez selectionner les dates');
       return;
     }
     
-    // Kayak uses encoded city names with the pickup/dropoff times
-    // Format: https://www.kayak.fr/cars/CityName/YYYY-MM-DD-10h00/YYYY-MM-DD-10h00
-    // const formatCityForKayak = (name: string) => {
-      // Remove accents and encode for URL
-      return name
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, '-');
-    };
+    const cityEncoded = encodeURIComponent(city);
+    const url = `https://www.kayak.fr/cars/${cityEncoded}/${pickupDate}-10h00/${returnDate}-10h00`;
     
-    const cityForUrl = encodeURIComponent(city);
-    
-    // Add default pickup time (10:00) and return time (10:00)
-    const pickupWithTime = `${pickupDate}-10h00`;
-    const returnWithTime = `${returnDate}-10h00`;
-    
-    // Kayak car rental URL with city, dates and times
-    const url = `https://www.kayak.fr/cars/${cityForUrl}/${pickupWithTime}/${returnWithTime}?sort=price_a`;
-    
-    console.log('Opening Kayak URL:', url);
-    
-    // Open in browser
     try {
       await Linking.openURL(url);
     } catch (error) {
-      console.error('Error opening URL:', error);
-      Alert.alert('Erreur', 'Impossible d\'ouvrir le navigateur. Veuillez réessayer.');
+      Alert.alert('Erreur', 'Impossible d ouvrir le lien');
     }
   };
 
