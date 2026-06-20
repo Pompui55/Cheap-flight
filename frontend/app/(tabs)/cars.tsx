@@ -127,7 +127,7 @@ export default function CarsScreen() {
     
     // Kayak uses encoded city names with the pickup/dropoff times
     // Format: https://www.kayak.fr/cars/CityName/YYYY-MM-DD-10h00/YYYY-MM-DD-10h00
-    const formatCityForKayak = (name: string) => {
+    // const formatCityForKayak = (name: string) => {
       // Remove accents and encode for URL
       return name
         .normalize('NFD')
@@ -135,7 +135,7 @@ export default function CarsScreen() {
         .replace(/\s+/g, '-');
     };
     
-    const cityForUrl = formatCityForKayak(city);
+    const cityForUrl = encodeURIComponent(city);
     
     // Add default pickup time (10:00) and return time (10:00)
     const pickupWithTime = `${pickupDate}-10h00`;
