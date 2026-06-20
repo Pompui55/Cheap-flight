@@ -8,6 +8,7 @@ import {
   Image,
   Modal,
   Pressable,
+  Share,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -60,7 +61,20 @@ export default function ProfileScreen() {
   }, [profileImage]);
 
   if (!isAuthenticated) {
-    return (
+    
+  const shareApp = async () => {
+    try {
+      await Share.share({
+        message: 'Decouvre Cheap Flight pour trouver des vols et hotels pas chers ! https://play.google.com/store/apps/details?id=com.pompui.cheapflightfinal',
+      });
+    } catch (e) { console.log(e); }
+  };
+
+  const rateApp = () => {
+    Linking.openURL('https://play.google.com/store/apps/details?id=com.pompui.cheapflightfinal');
+  };
+
+  return (
       <LinearGradient colors={['#0A0118', '#1E0B3C']} style={{flex:1,justifyContent:'center',alignItems:'center'}}>
         <Ionicons name="person-circle" size={100} color="#FFD700" />
         <Text style={{color:'#FFD700',fontSize:24,marginTop:20,fontWeight:'bold'}}>{t('login')}</Text>
@@ -237,7 +251,17 @@ export default function ProfileScreen() {
                   )}
                 </Pressable>
               ))}
-            </ScrollView>
+            
+        <View style={{marginTop: 20, padding: 16}}>
+          <Text style={{color: '#FFD700', fontSize: 18, fontWeight: 'bold', marginBottom: 16}}>Aidez-nous a grandir</Text>
+          <TouchableOpacity onPress={shareApp} style={{backgroundColor: '#7B2CBF', padding: 16, borderRadius: 12, marginBottom: 12}}>
+            <Text style={{color: '#FFD700', fontSize: 16}}>Partager l appli</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={rateApp} style={{backgroundColor: '#5A189A', padding: 16, borderRadius: 12}}>
+            <Text style={{color: '#FFD700', fontSize: 16}}>Noter sur Play Store</Text>
+          </TouchableOpacity>
+        </View>
+</ScrollView>
           </View>
         </View>
       </Modal>
