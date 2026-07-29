@@ -60,8 +60,6 @@ export default function ProfileScreen() {
     if (profileImage) saveProfileImage();
   }, [profileImage]);
 
-  if (!isAuthenticated) {
-    
   const shareApp = async () => {
     try {
       await Share.share({
@@ -74,6 +72,8 @@ export default function ProfileScreen() {
     Linking.openURL('https://play.google.com/store/apps/details?id=com.pompui.cheapflightfinal');
   };
 
+  if (!isAuthenticated) {
+    
   return (
       <LinearGradient colors={['#0A0118', '#1E0B3C']} style={{flex:1,justifyContent:'center',alignItems:'center'}}>
         <Ionicons name="person-circle" size={100} color="#FFD700" />
@@ -217,6 +217,19 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
+
+          {/* Share and Rate Section */}
+          <View style={{marginHorizontal: 16, marginBottom: 16}}>
+            <Text style={{color: '#C77DFF', fontSize: 16, fontWeight: 'bold', marginBottom: 12}}>Aidez-nous à grandir</Text>
+            <TouchableOpacity onPress={shareApp} style={{backgroundColor: '#7B2CBF', padding: 16, borderRadius: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center'}}>
+              <Ionicons name="share-social" size={20} color="#FFD700" />
+              <Text style={{color: '#FFD700', fontSize: 16, marginLeft: 12}}>Partager l'appli</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={rateApp} style={{backgroundColor: '#5A189A', padding: 16, borderRadius: 12, flexDirection: 'row', alignItems: 'center'}}>
+              <Ionicons name="star" size={20} color="#FFD700" />
+              <Text style={{color: '#FFD700', fontSize: 16, marginLeft: 12}}>Noter sur Play Store</Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <LinearGradient colors={['#7B2CBF', '#5A189A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.logoutGradient}>
               <Ionicons name="log-out" size={24} color="#FFF" />
@@ -252,15 +265,6 @@ export default function ProfileScreen() {
                 </Pressable>
               ))}
             
-        <View style={{marginTop: 20, padding: 16}}>
-          <Text style={{color: '#FFD700', fontSize: 18, fontWeight: 'bold', marginBottom: 16}}>Aidez-nous a grandir</Text>
-          <TouchableOpacity onPress={shareApp} style={{backgroundColor: '#7B2CBF', padding: 16, borderRadius: 12, marginBottom: 12}}>
-            <Text style={{color: '#FFD700', fontSize: 16}}>Partager l appli</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={rateApp} style={{backgroundColor: '#5A189A', padding: 16, borderRadius: 12}}>
-            <Text style={{color: '#FFD700', fontSize: 16}}>Noter sur Play Store</Text>
-          </TouchableOpacity>
-        </View>
 </ScrollView>
           </View>
         </View>

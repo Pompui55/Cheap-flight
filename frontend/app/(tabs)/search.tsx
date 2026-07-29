@@ -20,10 +20,17 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { AdBanner } from '../../src/components/AdBanner';
+import i18n from '../../src/i18n';
 
 // Backend URL
 const BACKEND_URL = 'https://cheap-flights-144.preview.emergentagent.com';
-
+// Partenaires de recherche de vols
+const FLIGHT_PARTNERS = [
+  { id: 'aviasales', name: 'Aviasales', icon: 'airplane', color: '#FF6B00' },
+  { id: 'omio', name: 'Omio', icon: 'train', color: '#FF6B00' },
+  { id: 'voyage', name: 'Voyage.com', icon: 'globe', color: '#0066CC' },
+  { id: '12go', name: '12Go', icon: 'map', color: '#00B386' },
+];
 // Interfaces
 interface Airport {
   code: string;
@@ -479,6 +486,7 @@ const generateFlights = (from: string, to: string): Flight[] => {
 };
 
 export default function SearchScreen() {
+  const t = (key: string) => i18n.t(key);
   const [origin, setOrigin] = useState('CDG');
   const [destination, setDestination] = useState('');
   const [departureDate, setDepartureDate] = useState('');
@@ -487,7 +495,9 @@ export default function SearchScreen() {
   const [showReturnPicker, setShowReturnPicker] = useState(false);
   const [tripType, setTripType] = useState<'oneway' | 'roundtrip'>('oneway');
   const [travelers, setTravelers] = useState(1);
-  
+  const [flexibleDates, setFlexibleDates] = useState(false);
+  const [selectedFlightPartner, setSelectedFlightPartner] = useState(FLIGHT_PARTNERS[0]);
+const [showPartnerModal, setShowPartnerModal] = useState(false);
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -504,8 +514,38 @@ export default function SearchScreen() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     setDepartureDate(tomorrow.toISOString().split('T')[0]);
-  }, []);
+  }, [])
 
+const getFlightPartnerUrl = (): string => {
+  const formattedDeparture = departureDate.slice(8, 10) + departureDate.slice(5, 7);
+  const formattedReturn = returnDate ? returnDate.slice(8, 10) + returnDate.slice(5, 7) : '';
+  
+  switch (selectedFlightPartner.id) {
+    case 'aviasales':
+      if (returnDate) {
+        return `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}${formattedReturn}1?marker=515b05&currency=EUR${flexibleDates ? '&flexibility=3' : ''}`;
+      }
+      return `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}1?marker=515b05&currency=EUR${flexibleDates ? '&flexibility=3' : ''}`;
+    
+    case 'omio':
+      if (returnDate) {
+        return `https://www.omio.fr/search-frontend/results/flight?departurePosition=${origin}&arrivalPosition=${destination}&outboundDate=${departureDate}&inboundDate=${returnDate}&passengers=1&marker=515605`;
+      }
+      return `https://www.omio.fr/search-frontend/results/flight?departurePosition=${origin}&arrivalPosition=${destination}&outboundDate=${departureDate}&passengers=1&marker=515605`;
+    
+    case 'voyage':
+      if (returnDate) {
+        return `https://fr.voyage.com/flights/${origin}-${destination}/?dcity=${origin}&acity=${destination}&ddate=${departureDate}&rdate=${returnDate}&adult=1&marker=515605`;
+      }
+      return `https://fr.voyage.com/flights/${origin}-${destination}/?dcity=${origin}&acity=${destination}&ddate=${departureDate}&adult=1&marker=515605`;
+    
+    case '12go':
+      return `https://12go.co/en/travel/${origin}/${destination}?date=${departureDate}&people=1&marker=515605`;
+  
+    default:
+      return `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}1?marker=515b05&currency=EUR`;
+  }
+};
   const handleSearch = async () => {
     if (!origin || !destination) {
       Alert.alert('Erreur', 'Veuillez sélectionner le départ et la destination');
@@ -519,21 +559,9 @@ export default function SearchScreen() {
       Alert.alert('Erreur', 'Veuillez sélectionner une date de départ');
       return;
     }
-
-    // Aller directement sur Aviasales
-    const formattedDeparture = departureDate.slice(8, 10) + departureDate.slice(5, 7);
-    let aviasalesUrl = '';
-    
-    if (returnDate) {
-      // Aller-retour
-      const formattedReturn = returnDate.slice(8, 10) + returnDate.slice(5, 7);
-      aviasalesUrl = `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}${formattedReturn}1?marker=515b05&currency=EUR`;
-    } else {
-      // Aller simple
-      aviasalesUrl = `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}1?marker=515b05&currency=EUR`;
-    }
-    
-    Linking.openURL(aviasalesUrl);
+    // Ouvrir le partenaire sélectionné
+const partnerUrl = getFlightPartnerUrl();
+Linking.openURL(partnerUrl);
     return;
 
     // Code original commenté
@@ -630,7 +658,7 @@ const handleBook = (flight: Flight) => {
               >
                 <Ionicons name="airplane-outline" size={20} color="#C77DFF" />
                 <View style={styles.inputContent}>
-                  <Text style={styles.inputLabel}>DÉPART</Text>
+                  <Text style={styles.inputLabel}>{ t('departure') }</Text>
                   <Text style={styles.inputValue}>
                     {origin ? `${getAirportName(origin)} (${origin})` : 'Choisir...'}
                   </Text>
@@ -662,7 +690,7 @@ const handleBook = (flight: Flight) => {
               >
                 <Ionicons name="location-outline" size={20} color="#C77DFF" />
                 <View style={styles.inputContent}>
-                  <Text style={styles.inputLabel}>DESTINATION</Text>
+                  <Text style={styles.inputLabel}>{ t('destination') }</Text>
                   <Text style={styles.inputValue}>
                     {destination ? `${getAirportName(destination)} (${destination})` : 'Choisir...'}
                   </Text>
@@ -676,13 +704,13 @@ const handleBook = (flight: Flight) => {
     style={[styles.tripTypeButton, tripType === 'oneway' && styles.tripTypeActive]}
     onPress={() => setTripType('oneway')}
   >
-    <Text style={[styles.tripTypeText, tripType === 'oneway' && styles.tripTypeTextActive]}>Aller simple</Text>
+    <Text style={[styles.tripTypeText, tripType === 'oneway' && styles.tripTypeTextActive]}>{ t('oneWay') }</Text>
   </Pressable>
   <Pressable
     style={[styles.tripTypeButton, tripType === 'roundtrip' && styles.tripTypeActive]}
     onPress={() => setTripType('roundtrip')}
   >
-    <Text style={[styles.tripTypeText, tripType === 'roundtrip' && styles.tripTypeTextActive]}>Aller-retour</Text>
+    <Text style={[styles.tripTypeText, tripType === 'roundtrip' && styles.tripTypeTextActive]}>{ t('roundTrip') }</Text>
   </Pressable>
 </View>
 
@@ -690,7 +718,7 @@ const handleBook = (flight: Flight) => {
 <Pressable style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
   <Ionicons name="calendar-outline" size={20} color="#C77DFF" />
   <View style={styles.inputContent}>
-    <Text style={styles.inputLabel}>DATE DE DÉPART</Text>
+    <Text style={styles.inputLabel}>{ t('departureDate') }</Text>
     <Text style={styles.inputValue}>{departureDate || 'Choisir une date'}</Text>
   </View>
   <Ionicons name="chevron-forward" size={20} color="#C77DFF" />
@@ -701,7 +729,7 @@ const handleBook = (flight: Flight) => {
   <Pressable style={styles.inputContainer} onPress={() => setShowReturnPicker(true)}>
     <Ionicons name="calendar-outline" size={20} color="#C77DFF" />
     <View style={styles.inputContent}>
-      <Text style={styles.inputLabel}>DATE DE RETOUR</Text>
+      <Text style={styles.inputLabel}>{ t('returnDate') }</Text>
       <Text style={styles.inputValue}>{returnDate || 'Choisir une date'}</Text>
     </View>
     <Ionicons name="chevron-forward" size={20} color="#C77DFF" />
@@ -712,7 +740,7 @@ const handleBook = (flight: Flight) => {
 <View style={styles.inputContainer}>
   <Ionicons name="people-outline" size={20} color="#C77DFF" />
   <View style={styles.inputContent}>
-    <Text style={styles.inputLabel}>VOYAGEURS</Text>
+    <Text style={styles.inputLabel}>{ t('travelers') }</Text>
     <Text style={styles.inputValue}>{travelers} {travelers > 1 ? 'passagers' : 'passager'}</Text>
   </View>
   <View style={styles.travelersControl}>
@@ -725,6 +753,32 @@ const handleBook = (flight: Flight) => {
   </View>
 </View>
 
+
+{/* Flexible Dates Toggle */}
+<Pressable
+  style={[styles.inputContainer, { justifyContent: 'space-between' }]}
+  onPress={() => setFlexibleDates(!flexibleDates)}
+>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <Ionicons name="swap-horizontal" size={20} color="#C77DFF" />
+    <Text style={{ color: '#FFD700', marginLeft: 12, fontSize: 14, fontWeight: '600' }}>{ t('flexibleDates') }</Text>
+  </View>
+  <View style={{ width: 50, height: 28, borderRadius: 14, backgroundColor: flexibleDates ? '#7B2CBF' : 'rgba(255,255,255,0.1)', padding: 2, justifyContent: 'center' }}>
+    <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#FFD700', alignSelf: flexibleDates ? 'flex-end' : 'flex-start' }} />
+  </View>
+</Pressable>
+{/* Partner Selector */}
+              <Pressable 
+                style={styles.inputContainer} 
+                onPress={() => setShowPartnerModal(true)}
+              >
+                <Ionicons name={selectedFlightPartner.icon as any} size={20} color={selectedFlightPartner.color} />
+                <View style={styles.inputContent}>
+                  <Text style={styles.inputLabel}>RECHERCHER VIA</Text>
+                  <Text style={styles.inputValue}>{selectedFlightPartner.name}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#C77DFF" />
+              </Pressable>
               {/* Search Button */}
               <Pressable
                 style={({ pressed }) => [styles.searchButton, pressed && styles.buttonPressed]}
@@ -742,7 +796,7 @@ const handleBook = (flight: Flight) => {
                   ) : (
                     <>
                       <Ionicons name="search" size={20} color="#FFF" />
-                      <Text style={styles.searchButtonText}>Rechercher</Text>
+                      <Text style={styles.searchButtonText}>{ t('search') }</Text>
                     </>
                   )}
                 </LinearGradient>
@@ -753,7 +807,7 @@ const handleBook = (flight: Flight) => {
           {/* Popular Destinations */}
           {!searched && (
             <View style={styles.popularSection}>
-              <Text style={styles.sectionTitle}>Destinations populaires</Text>
+              <Text style={styles.sectionTitle}>{ t('popularDestinations') }</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {popularDestinations.map((dest, index) => (
                   <Pressable
@@ -781,7 +835,7 @@ const handleBook = (flight: Flight) => {
               <View style={styles.resultsHeader}>
                 <Text style={styles.resultsTitle}>{flights.length} vols trouvés</Text>
                 <Pressable onPress={() => setSearched(false)}>
-                  <Text style={styles.newSearchText}>Nouvelle recherche</Text>
+                  <Text style={styles.newSearchText}>{ t('newSearch') }</Text>
                 </Pressable>
               </View>
 
@@ -854,7 +908,7 @@ const handleBook = (flight: Flight) => {
           {searched && flights.length === 0 && (
             <View style={styles.noResults}>
               <Ionicons name="airplane-outline" size={48} color="#9D4EDD" />
-              <Text style={styles.noResultsText}>Aucun vol trouvé</Text>
+              <Text style={styles.noResultsText}>{ t('noFlights') }</Text>
             </View>
           )}
 
@@ -870,7 +924,7 @@ const handleBook = (flight: Flight) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Ville de départ</Text>
+              <Text style={styles.modalTitle}>{ t('departureCity') }</Text>
               <Pressable onPress={() => setShowOriginModal(false)} hitSlop={20}>
                 <Ionicons name="close" size={28} color="#FFF" />
               </Pressable>
@@ -943,7 +997,7 @@ const handleBook = (flight: Flight) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Ville d'arrivée</Text>
+              <Text style={styles.modalTitle}>{ t('arrivalCity') }</Text>
               <Pressable onPress={() => setShowDestModal(false)} hitSlop={20}>
                 <Ionicons name="close" size={28} color="#FFF" />
               </Pressable>
@@ -1047,7 +1101,7 @@ const handleBook = (flight: Flight) => {
         <View style={styles.modalOverlay}>
           <View style={styles.flightModalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Détails du vol</Text>
+              <Text style={styles.modalTitle}>{ t('flightDetails') }</Text>
               <Pressable onPress={() => setSelectedFlight(null)} hitSlop={20}>
                 <Ionicons name="close" size={28} color="#FFF" />
               </Pressable>
@@ -1085,7 +1139,7 @@ const handleBook = (flight: Flight) => {
                 </View>
                 
                 <View style={styles.priceSection}>
-                  <Text style={styles.totalLabel}>Prix total</Text>
+                  <Text style={styles.totalLabel}>{ t('totalPrice') }</Text>
                   <Text style={styles.totalPrice}>{selectedFlight.price} {selectedFlight.currency}</Text>
                 </View>
 
@@ -1097,7 +1151,7 @@ const handleBook = (flight: Flight) => {
                     colors={['#7B2CBF', '#C77DFF']}
                     style={styles.bookButtonGradient}
                   >
-                    <Text style={styles.bookButtonText}>Réserver ce vol</Text>
+                    <Text style={styles.bookButtonText}>{ t('bookFlight') }</Text>
                   </LinearGradient>
                 </Pressable>
               </View>
@@ -1105,7 +1159,45 @@ const handleBook = (flight: Flight) => {
           </View>
         </View>
       </Modal>
-
+      {/* Partner Selection Modal */}
+      <Modal visible={showPartnerModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { minHeight: '30%' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Choisir un partenaire</Text>
+              <Pressable onPress={() => setShowPartnerModal(false)} hitSlop={20}>
+                <Ionicons name="close" size={28} color="#FFF" />
+              </Pressable>
+            </View>
+            {FLIGHT_PARTNERS.map((partner) => (
+              <Pressable
+                key={partner.id}
+                style={({ pressed }) => [{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 16,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#3C096C'
+                }, pressed && { backgroundColor: 'rgba(199,125,255,0.1)' }]}
+                onPress={() => { setSelectedFlightPartner(partner); setShowPartnerModal(false); }}
+              >
+                <View style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 12,
+                  backgroundColor: partner.color + '30',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Ionicons name={partner.icon as any} size={24} color={partner.color} />
+                </View>
+                <Text style={{ flex: 1, fontSize: 18, fontWeight: '600', color: '#FFD700', marginLeft: 16 }}>{partner.name}</Text>
+                {selectedFlightPartner.id === partner.id && <Ionicons name="checkmark-circle" size={24} color="#C77DFF" />}
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
