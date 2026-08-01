@@ -27,8 +27,6 @@ const BACKEND_URL = 'https://cheap-flights-144.preview.emergentagent.com';
 // Partenaires de recherche de vols
 const FLIGHT_PARTNERS = [
   { id: 'aviasales', name: 'Aviasales', icon: 'airplane', color: '#FF6B00' },
-  { id: 'omio', name: 'Omio', icon: 'train', color: '#FF6B00' },
-  { id: 'voyage', name: 'Voyage.com', icon: 'globe', color: '#0066CC' },
   { id: '12go', name: '12Go', icon: 'map', color: '#00B386' },
 ];
 // Interfaces
@@ -526,18 +524,6 @@ const getFlightPartnerUrl = (): string => {
         return `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}${formattedReturn}1?marker=515b05&currency=EUR${flexibleDates ? '&flexibility=3' : ''}`;
       }
       return `https://www.aviasales.com/search/${origin}${formattedDeparture}${destination}1?marker=515b05&currency=EUR${flexibleDates ? '&flexibility=3' : ''}`;
-    
-    case 'omio':
-      if (returnDate) {
-        return `https://www.omio.fr/search-frontend/results/flight?departurePosition=${origin}&arrivalPosition=${destination}&outboundDate=${departureDate}&inboundDate=${returnDate}&passengers=1&marker=515605`;
-      }
-      return `https://www.omio.fr/search-frontend/results/flight?departurePosition=${origin}&arrivalPosition=${destination}&outboundDate=${departureDate}&passengers=1&marker=515605`;
-    
-    case 'voyage':
-      if (returnDate) {
-        return `https://fr.voyage.com/flights/${origin}-${destination}/?dcity=${origin}&acity=${destination}&ddate=${departureDate}&rdate=${returnDate}&adult=1&marker=515605`;
-      }
-      return `https://fr.voyage.com/flights/${origin}-${destination}/?dcity=${origin}&acity=${destination}&ddate=${departureDate}&adult=1&marker=515605`;
     
     case '12go':
       return `https://12go.co/en/travel/${origin}/${destination}?date=${departureDate}&people=1&marker=515605`;
